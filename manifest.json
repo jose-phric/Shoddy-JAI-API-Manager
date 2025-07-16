@@ -17,5 +17,10 @@
       "matches": ["https://janitorai.com/chats/*"],
       "js": ["content.js"]
     }
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "shoddy-jai-api-manager@josephric.com"
+    }
+  }
 }
