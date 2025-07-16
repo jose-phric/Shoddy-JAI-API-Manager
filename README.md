@@ -27,6 +27,7 @@ Enhance your JanitorAI chat experience with custom presets! Quickly inject your 
 * **Button Location:** Your custom preset buttons will be found at the **bottom of the JanitorAI chat modal**, below the existing JanitorAI preset options.
 
 **What it looks like:**
+
 <img width="353" height="604" alt="image" src="https://github.com/user-attachments/assets/67dcabbd-a350-4d66-bbc0-ea887f850724" />
 
 <img width="625" height="750" alt="image" src="https://github.com/user-attachments/assets/349e3c5a-8928-47f5-8eab-e6cadecdab3f" />
