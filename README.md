@@ -21,6 +21,14 @@ Enhance your JanitorAI chat experience with custom presets! Quickly inject your 
 3.  **Create Presets:** Combine your saved data into powerful "Presets" for one-click setup.
 4.  **Use in JanitorAI:** When the JanitorAI chat modal appears, you'll see your custom buttons and dropdowns, ready to inject your saved configurations.
 
+**Installation**
+1. Click the green *Code* button and choose *Download ZIP*.
+2. Open your browser and go to its extensions page. You can also just type *chrome://extensions/* in the address bar.
+    - If you're using Edge, Opera, or a similar browser, it will automatically take you to the right place, even if it says "chrome" in the URL.
+3. Turn on *Developer mode*. This is needed because you're installing the extension manually.
+4. After enabling *Developer mode*, you'll see three options. Click *Load unpacked*. If you downloaded the ZIP file in step 1, unzip it first. Most computers can do this without extra software, but you can use [7-Zip](https://www.7-zip.org/) or [WinRAR](https://www.win-rar.com/start.html?&L=0) if needed. Make sure all the files are in their own folder after unzipping, then select that folder.
+5. If you had Janitor AI open while installing the extension, refresh the page (Ctrl + R) for it to work.
+
 **Please Note:**
 
 * **Content Visibility:** Nothing will appear in the JanitorAI modal (no dropdowns or custom buttons) until you have added at least one corresponding entry (e.g., a prompt, model, proxy URL, API key, or preset) via the extension's popup.
