@@ -24,9 +24,12 @@ Enhance your JanitorAI chat experience with custom presets! Quickly inject your 
 **Installation**
 1. Click the green *Code* button and choose *Download ZIP*.
 2. Open your browser and go to its extensions page. You can also just type *chrome://extensions/* in the address bar.
-    - If you're using Edge, Opera, or a similar browser, it will automatically take you to the right place, even if it says "chrome" in the URL.
-3. Turn on *Developer mode*. This is needed because you're installing the extension manually.
-4. After enabling *Developer mode*, you'll see three options. Click *Load unpacked*. If you downloaded the ZIP file in step one, unzip it first. Most modern systems can do this without extra software, but you can use [7-Zip](https://www.7-zip.org/) or [WinRAR](https://www.win-rar.com/start.html?&L=0) if needed. Make sure all the files are in their own folder after unzipping, then select that folder.
+    * If you're using Edge, Opera, Firefox, or a similar browser, it will automatically take you to the right place, even if it says "chrome" in the URL.
+3. Turn on *Developer mode*. This is needed because you're installing the extension manually. If you're using Firefox, you can skip this step as there isn't any modes you need to enable.
+4. Install the extension.
+    * **Chrome, Edge, Opera:** After enabling *Developer mode*, you'll see three options. Click *Load unpacked*. If you downloaded the ZIP file in step one, unzip it first. Most modern systems can do this without extra software, but you can use [7-Zip](https://www.7-zip.org/) or [WinRAR](https://www.win-rar.com/start.html?&L=0) if needed. Make sure all the files are in their own folder after unzipping, then select that folder.
+    * **Firefox:** Click the cog icon on the right side of the header at the top of the screen (not the one in the bottom-left labeled "Firefox settings"). From the dropdown, choose *Install Add-on From File*. 
+        * **If Firefox says the files are corrupt:** Open the ZIP and check if the extension files are inside a folder within the ZIP. If they are, extract everything, then select all the files (not the folder) and create a new ZIP. This way, opening the ZIP shows the files directly.
 5. If you had Janitor AI open while installing the extension, refresh the page(s) (Ctrl + R) for it to work.
 
 **Please Note:**
