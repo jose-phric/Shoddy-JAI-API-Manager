@@ -26,6 +26,7 @@ Enhance your JanitorAI chat experience with custom presets! Quickly inject your 
 
 * **Content Visibility:** Nothing will appear in the JanitorAI modal (no dropdowns or custom buttons) until you have added at least one corresponding entry (e.g., a prompt, model, proxy URL, API key, or preset) via the extension's popup.
 * **Button Location:** Your custom preset buttons will be found at the **bottom of the JanitorAI chat modal**, below the existing JanitorAI preset options.
+* **Occasional injecting issue:** Sometimes, the UI won't inject. This has mostly happened to me when returning to very old browser instances on PC. A simple page refresh should have it load right away. Sorry for the inconvenience :P
 
 
 **Janitor.ai's new API Settings menu could look like this once you've configured the extension!:** 
