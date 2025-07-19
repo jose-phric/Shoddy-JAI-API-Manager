@@ -28,7 +28,7 @@ Enhance your JanitorAI chat experience with custom presets! Quickly inject your 
 
 **What it looks like:**
 
-<img width="353" height="604" alt="image" src="https://github.com/user-attachments/assets/67dcabbd-a350-4d66-bbc0-ea887f850724" />
+<img width="348" height="599" alt="image" src="https://github.com/user-attachments/assets/ea425ae6-6251-42b4-94f9-84839be3e579" />
 
 <img width="622" height="723" alt="image" src="https://github.com/user-attachments/assets/79ce37e8-500e-48c6-bcd3-79c5f55b5db2" />
 
