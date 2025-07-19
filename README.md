@@ -12,7 +12,8 @@ Enhance your JanitorAI chat experience with custom presets! Quickly inject your 
     * **Store Proxy URLs:** Quickly apply different proxy configurations.
     * **Local API Key Storage:** Save and select your API keys by name.
 * **Edit & Delete Functionality:** Easily modify or remove any saved entries directly from the extension's compact, dark-mode friendly popup.
-* **Seamless Integration:** Designed to blend visually with the JanitorAI interface, ensuring a smooth user experience.
+* **Seamless Integration:** Designed to blend visually with the JanitorAI interface, ensuring a smooth user experience.z
+* **All storage is ENTIRELY local**: Using chrome.local.storage, meaning this data will not sync over the cloud in any way, shape or form.
 
 **How It Works:**
 
@@ -35,3 +36,7 @@ Enhance your JanitorAI chat experience with custom presets! Quickly inject your 
 <img width="596" height="196" alt="image" src="https://github.com/user-attachments/assets/67d76120-0ee2-439b-b185-eafed9f1118b" />
 
 <img width="612" height="273" alt="image" src="https://github.com/user-attachments/assets/962e4718-5e40-4218-b637-91ef483f1ebf" />
+
+<img width="337" height="604" alt="image" src="https://github.com/user-attachments/assets/c42eaf5b-ce82-464b-8429-29a1ab01fdf3" />
+
+<img width="329" height="419" alt="image" src="https://github.com/user-attachments/assets/c0bbb7ca-fcfb-4f80-9e53-94430a0b24d1" />
