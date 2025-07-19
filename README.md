@@ -27,9 +27,8 @@ Enhance your JanitorAI chat experience with custom presets! Quickly inject your 
 * **Content Visibility:** Nothing will appear in the JanitorAI modal (no dropdowns or custom buttons) until you have added at least one corresponding entry (e.g., a prompt, model, proxy URL, API key, or preset) via the extension's popup.
 * **Button Location:** Your custom preset buttons will be found at the **bottom of the JanitorAI chat modal**, below the existing JanitorAI preset options.
 
-**What the popup/extension looks like when you click on it:**
 
-<img width="348" height="599" alt="image" src="https://github.com/user-attachments/assets/ea425ae6-6251-42b4-94f9-84839be3e579" />
+**Janitor.ai's new API Settings menu could look like this once you've configured the extension!:** 
 
 What the new J.AI UI will look like: (Assuming you have at least one value saved in each section. The dropdowns will NOT appear if you have nothing stored!)
 
@@ -39,10 +38,15 @@ What the preset buttons look like (all the way at the bottom of the J.AI page):
 
 <img width="596" height="196" alt="image" src="https://github.com/user-attachments/assets/67d76120-0ee2-439b-b185-eafed9f1118b" />
 
-
 What the dropdowns look like:
 
 <img width="612" height="273" alt="image" src="https://github.com/user-attachments/assets/962e4718-5e40-4218-b637-91ef483f1ebf" />
+
+**The look of the actual extension popup itself looks like (when you click the icon in the top right):**
+
+What the popup/extension looks like when you click on it:
+
+<img width="348" height="599" alt="image" src="https://github.com/user-attachments/assets/ea425ae6-6251-42b4-94f9-84839be3e579" />
 
 What adding a prompt looks like:
 
