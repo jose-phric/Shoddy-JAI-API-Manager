@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Shoddy JAI API Manager",
+  "name": "Button Injector",
   "version": "1.0",
-  "description": "Lets you store Prompts, Models, Proxy URLs, API Keys and Presets containing ALL of those locally. Injects custom buttons and dropdowns into the JAI API Settings menu.",
+  "description": "Injects custom buttons into a specific element.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -17,10 +17,5 @@
       "matches": ["https://janitorai.com/chats/*"],
       "js": ["content.js"]
     }
-  ],
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "shoddy-jai-api-manager@josephric.com"
-    }
-  }
+  ]
 }
