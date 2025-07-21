@@ -1,26 +1,33 @@
 // --- Configuration ---
 const targetModalSelector = '._modalOverlay_1adus_2';
-const originalPresetButtonsContainerSelector = '._presetButtons_1u589_156';
+// Removed: const originalPresetButtonsContainerSelector = '._presetButtons_1u589_156';
 const TEXT_INPUT_SELECTOR = 'textarea#custom-prompt'; // Main prompt textarea
 const MODEL_INPUT_SELECTOR = 'input._input_1mhqu_61'; // Model input
-const PROXY_URL_INPUT_SELECTOR = 'input#proxy-url._input_1u589_61'; // Proxy URL input
-const API_KEY_INPUT_SELECTOR = 'input#api-key._input_1u589_61'; // API Key input
+const PROXY_URL_INPUT_SELECTOR = 'input#proxy-url._input_zf221_61'; // Proxy URL input
+const API_KEY_INPUT_SELECTOR = 'input#api-key._input_zf221_61'; // API Key input
+
+// New selectors for custom preset buttons insertion
+const CUSTOM_PROMPT_FORM_CONTROL_SELECTOR = 'div._formControl_zf221_15:has(textarea#custom-prompt)'; // Selector for the custom prompt's form control div
+const PRESET_BUTTONS_INSERTION_POINT_SELECTOR = CUSTOM_PROMPT_FORM_CONTROL_SELECTOR; // Insert custom preset buttons after this element
 
 // Parent containers/insertion points for injecting dropdowns (as string selectors)
-const MAIN_FORM_CONTROLS_CONTAINER_SELECTOR_STRING = '._container_1u589_1'; // Main container
+const MAIN_FORM_CONTROLS_CONTAINER_SELECTOR_STRING = '._container_zf221_1'; // Main container for form controls
 
-// For Prompt: Insert before the Prompt textarea itself
-const PROMPT_DROPDOWN_PARENT_SELECTOR_STRING = MAIN_FORM_CONTROLS_CONTAINER_SELECTOR_STRING;
-const PROMPT_INSERTION_POINT_SELECTOR_STRING = TEXT_INPUT_SELECTOR; // Insert BEFORE the prompt textarea
+// For Prompt: Insert after the Prompt label
+const PROMPT_DROPDOWN_PARENT_SELECTOR_STRING = CUSTOM_PROMPT_FORM_CONTROL_SELECTOR; // Changed: Parent is the custom prompt's form control div
+const PROMPT_INSERTION_POINT_SELECTOR_STRING = 'label[for="custom-prompt"]._label_zf221_21'; // Changed: Insert AFTER the prompt label
 
-const MODEL_DROPDOWN_PARENT_SELECTOR_STRING = MAIN_FORM_CONTROLS_CONTAINER_SELECTOR_STRING; // Model dropdown goes in the main container
-const MODEL_INSERTION_POINT_SELECTOR_STRING = '._labelRow_1u589_21'; // Insert Model cycler BEFORE this element (user's highlighted label's parent)
+// Model dropdown goes in the main container, inserted after the model input's form control div
+const MODEL_DROPDOWN_PARENT_SELECTOR_STRING = MAIN_FORM_CONTROLS_CONTAINER_SELECTOR_STRING;
+const MODEL_INSERTION_POINT_SELECTOR_STRING = 'div._formControl_1mhqu_1:has(input._input_1mhqu_61)'; // Insert AFTER the model input's form control div
 
-const PROXY_DROPDOWN_PARENT_SELECTOR_STRING = '._formControl_1u589_15'; // Proxy dropdown goes in the main container (User's manual tweak)
-const PROXY_INSERTION_POINT_SELECTOR_STRING = '._checkButton_1u589_90'; // Insert Proxy cycler BEFORE the Proxy URL input itself (User's manual tweak)
+// Proxy dropdown goes in the main container, inserted directly after the proxy URL input itself
+const PROXY_DROPDOWN_PARENT_SELECTOR_STRING = 'div._inputGroup_zf221_61'; // Changed: Insert within the input group div
+const PROXY_INSERTION_POINT_SELECTOR_STRING = 'input#proxy-url._input_zf221_61'; // Insert DIRECTLY AFTER the proxy URL input itself
 
-const API_KEY_DROPDOWN_PARENT_SELECTOR_STRING = MAIN_FORM_CONTROLS_CONTAINER_SELECTOR_STRING; // API Key dropdown goes in the main container
-const API_KEY_INSERTION_POINT_SELECTOR_STRING = '#api-key'; // Insert API Key cycler BEFORE the API Key input itself
+// API Key dropdown goes in its form control div, inserted directly after the API Key input itself
+const API_KEY_DROPDOWN_PARENT_SELECTOR_STRING = 'div._formControl_zf221_15:has(input#api-key._input_zf221_61)'; // Changed: Parent is the form control div
+const API_KEY_INSERTION_POINT_SELECTOR_STRING = 'input#api-key._input_zf221_61'; // Changed: Insert DIRECTLY AFTER the API Key input itself
 
 
 // --- Utility Functions ---
@@ -85,8 +92,10 @@ function insertCyclerIntoDOM(newElement, parentSelector, referenceSelector, cycl
     }
 
     if (actualInsertionPoint && actualInsertionPoint.parentElement === parentElement) {
-        parentElement.insertBefore(newElement, actualInsertionPoint);
-        // console.log(`${cyclerType} cycler injected before its logical insertion point.`); // Removed console.log
+        // To insert AFTER the reference element, we insert BEFORE its next sibling.
+        // If there's no next sibling, it will be appended to the end of the parent.
+        parentElement.insertBefore(newElement, actualInsertionPoint.nextSibling);
+        // console.log(`${cyclerType} cycler injected after its logical insertion point.`); // Removed console.log
     } else {
         console.warn(`Could not find a suitable insertion point for ${cyclerType} cycler within parent "${parentSelector}". Appending instead.`);
         parentElement.appendChild(newElement);
@@ -311,154 +320,154 @@ const populateCustomPrompt = (text) => {
 const createAndInjectPresetButtons = (presets) => {
     // console.log('Attempting to create and inject preset buttons with presets:', presets); // Removed console.log
 
-    // Get the container where original preset buttons are located
-    const originalPresetButtonsContainer = document.querySelector(originalPresetButtonsContainerSelector);
+    // Get the main form container where our new buttons will reside
+    const mainFormContainer = document.querySelector(MAIN_FORM_CONTROLS_CONTAINER_SELECTOR_STRING);
 
-    if (originalPresetButtonsContainer) {
-        // console.log('Original preset buttons container found:', originalPresetButtonsContainer); // Removed console.log
-
-        // Ensure there's only one custom container to avoid duplicates on re-injection
-        let customButtonsContainer = document.getElementById('janitor-custom-buttons-container');
-        if (customButtonsContainer) {
-            customButtonsContainer.innerHTML = ''; // Clear existing buttons
-        } else {
-            customButtonsContainer = document.createElement('div');
-            customButtonsContainer.id = 'janitor-custom-buttons-container';
-            customButtonsContainer.style.cssText = `
-                display: flex;
-                flex-wrap: wrap; /* Allow buttons to wrap to the next line */
-                gap: 5px; /* Space between buttons */
-                margin-top: 10px; /* Space above your buttons */
-                padding-top: 10px;
-                border-top: 1px solid #3e4451; /* Separator line */
-            `;
-            originalPresetButtonsContainer.parentElement.insertBefore(customButtonsContainer, originalPresetButtonsContainer.nextSibling);
-            // console.log('New custom buttons container created and inserted.'); // Removed console.log
-        }
-
-
-        if (presets.length === 0) {
-            const noPresetsMessage = document.createElement('span');
-            noPresetsMessage.textContent = 'No presets saved.';
-            noPresetsMessage.style.cssText = `
-                color: #6a737d;
-                font-style: italic;
-                padding: 5px;
-            `;
-            customButtonsContainer.appendChild(noPresetsMessage);
-        } else {
-            presets.forEach(preset => {
-                const button = document.createElement('button');
-                button.textContent = preset.name;
-                button.className = '_button_1u589_1 _ghost_1u589_11'; // Mimic existing JanitorAI button style
-                button.style.cssText = `
-                    padding: 6px 12px;
-                    border-radius: 4px;
-                    border: 1px solid #61afef; /* Light blue border */
-                    background-color: #3e4451; /* Dark background */
-                    color: #61afef; /* Light blue text */
-                    cursor: pointer;
-                    font-size: 13px;
-                    transition: background-color 0.2s ease, border-color 0.2s ease;
-                `;
-
-                // Add hover effect
-                button.onmouseover = () => {
-                    button.style.backgroundColor = '#61afef'; /* Light blue background on hover */
-                    button.style.color = '#282c34'; /* Dark text on hover */
-                };
-                button.onmouseout = () => {
-                    button.style.backgroundColor = '#3e4451'; /* Revert background */
-                    button.style.color = '#61afef'; /* Revert text */
-                };
-
-                button.addEventListener('click', () => {
-                    // console.log('Preset button clicked:', preset.name); // Removed console.log
-                    populateCustomPrompt(preset.prompt);
-
-                    const modelInput = document.querySelector(MODEL_INPUT_SELECTOR);
-                    if (modelInput && preset.model) {
-                        modelInput.value = preset.model;
-                        const event_ = new Event('input', { bubbles: true });
-                        modelInput.dispatchEvent(event_);
-                        // console.log('Model populated:', preset.model); // Removed console.log
-                    } else if (modelInput) {
-                        modelInput.value = ''; // Clear if preset has no model
-                        const event_ = new Event('input', { bubbles: true });
-                        modelInput.dispatchEvent(event_);
-                        // console.log('Model cleared (preset has no model).'); // Removed console.log
-                    }
-
-                    const proxyInput = document.querySelector(PROXY_URL_INPUT_SELECTOR);
-                    if (proxyInput && preset.proxy) {
-                        proxyInput.value = preset.proxy;
-                        const event_ = new Event('input', { bubbles: true });
-                        proxyInput.dispatchEvent(event_);
-                        // console.log('Proxy URL populated:', preset.proxy); // Removed console.log
-                    } else if (proxyInput) {
-                        proxyInput.value = ''; // Clear if preset has no proxy
-                        const event_ = new Event('input', { bubbles: true });
-                        proxyInput.dispatchEvent(event_);
-                        // console.log('Proxy URL cleared (preset has no proxy).'); // Removed console.log
-                    }
-
-                    const apiKeyInput = document.querySelector(API_KEY_INPUT_SELECTOR);
-                    if (apiKeyInput && preset.apiKey) {
-                        apiKeyInput.value = preset.apiKey;
-                        const event_ = new Event('input', { bubbles: true });
-                        apiKeyInput.dispatchEvent(event_);
-                        // console.log('API Key populated:', preset.apiKey); // Removed console.log
-                    } else if (apiKeyInput) {
-                        apiKeyInput.value = ''; // Clear if preset has no API key
-                        const event_ = new Event('input', { bubbles: true });
-                        apiKeyInput.dispatchEvent(event_);
-                        // console.log('API Key cleared (preset has no API key).'); // Removed console.log
-                    }
-
-                });
-                customButtonsContainer.appendChild(button);
-            });
-        }
-
-        // Always fetch latest data for cyclers when presets are updated/rendered
-        chrome.storage.local.get(['savedPrompts', 'savedModels', 'savedProxies', 'savedApiKeys'], (data) => {
-            const prompts = data.savedPrompts || [];
-            const models = data.savedModels || [];
-            const proxies = data.savedProxies || [];
-            const apiKeys = data.savedApiKeys || [];
-
-            // Prompt Cycler
-            if (prompts && prompts.length > 0) {
-                createAndInjectPromptCycler(prompts);
-            } else {
-                const existingPromptCycler = document.getElementById('janitor-prompt-cycler');
-                if (existingPromptCycler) existingPromptCycler.remove();
-            }
-
-            // Model Cycler
-            if (models && models.length > 0) {
-                createAndInjectModelCycler(models);
-            } else {
-                const existingModelCycler = document.getElementById('janitor-model-cycler');
-                if (existingModelCycler) existingModelCycler.remove();
-            }
-
-            // Proxy Cycler
-            if (proxies && proxies.length > 0) {
-                createAndInjectProxyCycler(proxies);
-            } else {
-                const existingProxyCycler = document.getElementById('janitor-proxy-cycler');
-                if (existingProxyCycler) existingProxyCycler.remove();
-            }
-
-            // API Key cycler should still appear even if empty, to allow selection of "Select API Key"
-            createAndInjectApiKeyCycler(apiKeys);
-        });
-
-    } else {
-        console.warn('Original preset buttons container with selector ._presetButtons_1u589_156 not found within the modal structure.');
-        // Consider if the modal structure is different or the selector is incorrect.
+    if (!mainFormContainer) {
+        console.warn('Main form container not found, cannot inject preset buttons.');
+        return;
     }
+
+    // Ensure there's only one custom container to avoid duplicates on re-injection
+    let customButtonsContainer = document.getElementById('janitor-custom-buttons-container');
+    if (customButtonsContainer) {
+        customButtonsContainer.innerHTML = ''; // Clear existing buttons
+    } else {
+        customButtonsContainer = document.createElement('div');
+        customButtonsContainer.id = 'janitor-custom-buttons-container';
+        customButtonsContainer.style.cssText = `
+            display: flex;
+            flex-wrap: wrap; /* Allow buttons to wrap to the next line */
+            gap: 5px; /* Space between buttons */
+            margin-top: 10px; /* Space above your buttons */
+            padding-top: 10px;
+            border-top: 1px solid #3e4451; /* Separator line */
+        `;
+        // Insert after the custom prompt form control div
+        const insertionPoint = document.querySelector(PRESET_BUTTONS_INSERTION_POINT_SELECTOR);
+        if (insertionPoint) {
+            insertionPoint.parentElement.insertBefore(customButtonsContainer, insertionPoint.nextSibling);
+        } else {
+            // Fallback if the specific insertion point is not found
+            mainFormContainer.appendChild(customButtonsContainer);
+        }
+        // console.log('New custom buttons container created and inserted.'); // Removed console.log
+    }
+
+
+    if (presets.length === 0) {
+        const noPresetsMessage = document.createElement('span');
+        noPresetsMessage.textContent = 'No presets saved.';
+        noPresetsMessage.style.cssText = `
+            color: #6a737d;
+            font-style: italic;
+            padding: 5px;
+        `;
+        customButtonsContainer.appendChild(noPresetsMessage);
+    } else {
+        presets.forEach(preset => {
+            const button = document.createElement('button');
+            button.textContent = preset.name;
+            button.className = '_button_1u589_1 _ghost_1u589_11'; // Mimic existing JanitorAI button style
+            button.style.cssText = `
+                padding: 6px 12px;
+                border-radius: 4px;
+                border: 1px solid #61afef; /* Light blue border */
+                background-color: #3e4451; /* Dark background */
+                color: #61afef; /* Light blue text */
+                cursor: pointer;
+                font-size: 13px;
+                transition: background-color 0.2s ease, border-color 0.2s ease;
+            `;
+
+            // Add hover effect
+            button.onmouseover = () => {
+                button.style.backgroundColor = '#61afef'; /* Light blue background on hover */
+                button.style.color = '#282c34'; /* Dark text on hover */
+            };
+            button.onmouseout = () => {
+                button.style.backgroundColor = '#3e4451'; /* Revert background */
+                button.style.color = '#61afef'; /* Revert text */
+            };
+
+            button.addEventListener('click', () => {
+                // console.log('Preset button clicked:', preset.name); // Removed console.log
+                populateCustomPrompt(preset.prompt);
+
+                const modelInput = document.querySelector(MODEL_INPUT_SELECTOR);
+                if (modelInput && preset.model) {
+                    modelInput.value = preset.model;
+                    const event_ = new Event('input', { bubbles: true });
+                    modelInput.dispatchEvent(event_);
+                    // console.log('Model populated:', preset.model); // Removed console.log
+                } else if (modelInput) {
+                    modelInput.value = ''; // Clear if preset has no model
+                    const event_ = new Event('input', { bubbles: true });
+                    modelInput.dispatchEvent(event_);
+                    // console.log('Model cleared (preset has no model).'); // Removed console.log
+                }
+
+                const proxyInput = document.querySelector(PROXY_URL_INPUT_SELECTOR);
+                if (proxyInput && preset.proxy) {
+                    proxyInput.value = preset.proxy;
+                    const event_ = new Event('input', { bubbles: true });
+                    proxyInput.dispatchEvent(event_);
+                } else if (proxyInput) {
+                    proxyInput.value = '';
+                    const event_ = new Event('input', { bubbles: true });
+                    proxyInput.dispatchEvent(event_);
+                }
+
+                const apiKeyInput = document.querySelector(API_KEY_INPUT_SELECTOR);
+                if (apiKeyInput && preset.apiKey) {
+                    apiKeyInput.value = preset.apiKey;
+                    const event_ = new Event('input', { bubbles: true });
+                    apiKeyInput.dispatchEvent(event_);
+                } else if (apiKeyInput) {
+                    apiKeyInput.value = '';
+                    const event_ = new Event('input', { bubbles: true });
+                    apiKeyInput.dispatchEvent(event_);
+                }
+
+            });
+            customButtonsContainer.appendChild(button);
+        });
+    }
+
+    // Always fetch latest data for cyclers when presets are updated/rendered
+    chrome.storage.local.get(['savedPrompts', 'savedModels', 'savedProxies', 'savedApiKeys'], (data) => {
+        const prompts = data.savedPrompts || [];
+        const models = data.savedModels || [];
+        const proxies = data.savedProxies || [];
+        const apiKeys = data.savedApiKeys || [];
+
+        // Prompt Cycler
+        if (prompts && prompts.length > 0) {
+            createAndInjectPromptCycler(prompts);
+        } else {
+            const existingPromptCycler = document.getElementById('janitor-prompt-cycler');
+            if (existingCycler) existingCycler.remove();
+        }
+
+        // Model Cycler
+        if (models && models.length > 0) {
+            createAndInjectModelCycler(models);
+        } else {
+            const existingModelCycler = document.getElementById('janitor-model-cycler');
+            if (existingModelCycler) existingModelCycler.remove();
+        }
+
+        // Proxy Cycler
+        if (proxies && proxies.length > 0) {
+            createAndInjectProxyCycler(proxies);
+        } else {
+            const existingProxyCycler = document.getElementById('janitor-proxy-cycler');
+            if (existingProxyCycler) existingProxyCycler.remove();
+        }
+
+        // API Key cycler should still appear even if empty, to allow selection of "Select API Key"
+        createAndInjectApiKeyCycler(apiKeys);
+    });
 };
 
 // --- New logic using MutationObserver to detect the modal overlay ---
@@ -467,17 +476,19 @@ const createAndInjectPresetButtons = (presets) => {
 const onModalAppears = () => {
   // console.log('Modal overlay detected! Running your script...'); // Removed console.log
 
-  // Find the original preset buttons container within the modal structure
-  const originalPresetButtonsContainer = document.querySelector(originalPresetButtonsContainerSelector);
+  // Find the main form container for cyclers
+  const mainFormContainerForCyclers = document.querySelector(MAIN_FORM_CONTROLS_CONTAINER_SELECTOR_STRING);
 
-  if (originalPresetButtonsContainer) {
-    // console.log('Original preset buttons container found:', originalPresetButtonsContainer); // Removed console.log
+  if (mainFormContainerForCyclers) {
+    // console.log('Main form container found for cyclers:', mainFormContainerForCyclers); // Removed console.log
 
     // Initial injection of buttons and cyclers
     chrome.storage.local.get(['savedPresets'], (data) => {
         const presets = data.savedPresets || [];
         createAndInjectPresetButtons(presets);
     });
+  } else {
+    console.warn('Main form container for cyclers not found on modal appearance.');
   }
 };
 
