@@ -33,7 +33,7 @@ Enhance your JanitorAI chat experience with custom presets! Quickly inject your 
 
 What the new J.AI UI will look like: (Assuming you have at least one value saved in each section. The dropdowns will NOT appear if you have nothing stored!)
 
-<img width="622" height="723" alt="image" src="https://github.com/user-attachments/assets/79ce37e8-500e-48c6-bcd3-79c5f55b5db2" />
+<img width="631" height="903" alt="image" src="https://github.com/user-attachments/assets/3e5dcffb-810d-4996-a6ee-18de1f522b73" />
 
 What the preset buttons look like (all the way at the bottom of the J.AI page):
 
@@ -47,12 +47,17 @@ What the dropdowns look like:
 
 What the popup/extension looks like when you click on it:
 
-<img width="348" height="599" alt="image" src="https://github.com/user-attachments/assets/ea425ae6-6251-42b4-94f9-84839be3e579" />
+<img width="346" height="603" alt="image" src="https://github.com/user-attachments/assets/28376f6a-b863-4f15-8ea4-e2822211526a" />
 
 What adding a prompt looks like:
 
-<img width="337" height="604" alt="image" src="https://github.com/user-attachments/assets/c42eaf5b-ce82-464b-8429-29a1ab01fdf3" />
+<img width="342" height="598" alt="image" src="https://github.com/user-attachments/assets/34ca6213-15c5-408d-af7f-e07ec375369b" />
 
 What adding a preset looks like:
 
-<img width="329" height="419" alt="image" src="https://github.com/user-attachments/assets/c0bbb7ca-fcfb-4f80-9e53-94430a0b24d1" />
+<img width="333" height="599" alt="image" src="https://github.com/user-attachments/assets/aa9611f8-bf76-4eee-a257-4979e7177fa6" />
+
+On click edit/delete button: (Could probably use another tweak to look better :P)
+
+<img width="343" height="322" alt="image" src="https://github.com/user-attachments/assets/696a2a83-97c7-4fd4-9418-08b10d712264" />
+
