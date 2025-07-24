@@ -2,6 +2,11 @@
 // This script manages the UI and data storage for Prompts, Models, Proxies, API Keys,
 // and Presets in the browser action popup.
 
+// --- DEBUG CONFIGURATION ---
+const DEBUG_MODE = false; // Set to true to enable console logs, false to disable.
+// --- END DEBUG CONFIGURATION ---
+
+
 // --- Data Structures in chrome.storage.local ---
 // savedPrompts: Array of { id: 'unique-id', name: 'Prompt Name', value: 'Prompt Text' }
 // savedModels: Array of String ('Model Name')
@@ -48,6 +53,7 @@ const proxyUrlFormArea = document.getElementById('proxyUrlFormArea');
 const apiKeyFormArea = document.getElementById('apiKeyFormArea');
 const presetFormArea = document.getElementById('presetFormArea');
 
+
 // Forms themselves
 const promptForm = document.getElementById('promptForm');
 const modelForm = document.getElementById('modelForm');
@@ -92,15 +98,37 @@ const messageBoxOkButton = document.getElementById('messageBoxOkButton');
 // New: Cancel button for the custom message box
 const messageBoxCancelButton = document.createElement('button');
 messageBoxCancelButton.textContent = 'Cancel';
-messageBoxCancelButton.style.backgroundColor = '#e06c75'; // Red color for cancel
+// Apply the fancy-button class to the dynamically created cancel button
+messageBoxCancelButton.classList.add('fancy-button'); // Added fancy-button class
+// Override background for visual distinction as a cancel button
+messageBoxCancelButton.style.backgroundImage = 'linear-gradient(160deg, rgb(23, 5, 10), rgb(59, 11, 26), rgb(87, 22, 45), rgb(59, 11, 26), rgb(23, 5, 10))';
+messageBoxCancelButton.style.borderColor = 'rgb(87, 22, 45)';
+messageBoxCancelButton.style.color = 'rgb(255, 103, 142)';
+messageBoxCancelButton.style.textShadow = 'rgba(255, 103, 142, 0.8) 0px 0px 10px';
+messageBoxCancelButton.style.boxShadow = 'rgba(0, 0, 0, 0.16) 0px 3px 6px 0px, rgba(0, 0, 0, 0.23) 0px 3px 6px 0px, rgba(38, 7, 17, 0.7) 0px -2px 5px 1px inset, rgba(255, 103, 142, 0.4) 0px -1px 1px 3px inset';
+
 messageBoxCancelButton.style.marginLeft = '10px';
 messageBoxCancelButton.addEventListener('click', hideCustomMessageBox); // Hide on cancel
-customMessageBox.appendChild(messageBoxCancelButton); // Append to message box
+// Append to the messageBoxButtons div, not directly to customMessageBox
+document.getElementById('messageBoxButtons').appendChild(messageBoxCancelButton);
 
 
 // --- Global State for Editing ---
 let editingItemId = null;
 let editingItemType = null; // 'prompt', 'model', 'proxy', 'apiKey', 'preset'
+
+// --- Global State for Drag and Drop ---
+let draggedItem = null; // Stores the DOM element being dragged
+let draggedItemData = null; // Stores the actual data object/string of the dragged item
+let draggedItemStorageKey = null; // Stores the storage key ('savedPrompts', etc.)
+let draggedItemIdField = null; // Stores the ID field name ('id' or null)
+
+// --- Global State for Auto-Scrolling ---
+let autoScrollInterval = null;
+// Define the percentage of the list height from the top/bottom that triggers scrolling
+const AUTO_SCROLL_EDGE_ZONE_PERCENTAGE = 0.25; // 25% from top, 25% from bottom = 50% total scroll zones
+const SCROLL_SPEED_MAX = 10; // pixels per interval (max speed)
+let currentScrollList = null; // To keep track of which list is scrolling
 
 
 // --- Helper Functions ---
@@ -113,7 +141,7 @@ let editingItemType = null; // 'prompt', 'model', 'proxy', 'apiKey', 'preset'
  */
 function showCustomMessageBox(message, onConfirm = null, showCancel = false) {
     messageBoxText.textContent = message;
-    customMessageBox.style.display = 'block';
+    customMessageBox.style.display = 'flex'; // Set to flex when showing to center content
 
     // Clear previous event listeners
     messageBoxOkButton.onclick = null;
@@ -152,9 +180,18 @@ function generateUniqueId() {
 function hideAllForms() {
     promptFormArea.style.display = 'none';
     modelFormArea.style.display = 'none';
-    proxyUrlFormArea.style.display = 'none';
+    proxyUrlArea.style.display = 'none';
     apiKeyFormArea.style.display = 'none';
     presetFormArea.style.display = 'none';
+}
+
+/**
+ * Hides all action buttons across all list items.
+ */
+function hideAllActionButtons() {
+    document.querySelectorAll('.action-buttons').forEach(btnContainer => {
+        btnContainer.classList.add('hidden');
+    });
 }
 
 /**
@@ -190,17 +227,224 @@ function showAllListAreas() {
      saveProxyUrlButton.textContent = 'Save Proxy URL';
      saveApiKeyButton.textContent = 'Save Key';
      savePresetButton.textContent = 'Save Preset';
+
+     hideAllActionButtons(); // Ensure all action buttons are hidden when forms are closed
 }
 
 /**
  * Reloads all lists. Call this after any save/delete operation.
  */
 function reloadAllLists() {
+    if (DEBUG_MODE) console.log('Reloading all lists...');
     loadAndDisplayPrompts();
     loadAndDisplayModels();
     loadAndDisplayProxies();
     loadAndDisplayApiKeys();
     loadAndDisplayPresets();
+}
+
+
+// --- Auto-Scrolling Functions ---
+
+/**
+ * Starts auto-scrolling a list element.
+ * @param {HTMLElement} listElement - The scrollable list container.
+ * @param {number} direction - -1 for up, 1 for down.
+ * @param {number} speedMultiplier - A value between 0 and 1 to multiply SCROLL_SPEED_MAX.
+ */
+function startAutoScroll(listElement, direction, speedMultiplier) {
+    const calculatedSpeed = SCROLL_SPEED_MAX * speedMultiplier;
+
+    // Only start scrolling if not already scrolling the same element in the same direction AND speed
+    if (autoScrollInterval && currentScrollList === listElement &&
+        Math.sign(autoScrollInterval._direction) === direction &&
+        autoScrollInterval._speed === calculatedSpeed) {
+        return;
+    }
+
+    stopAutoScroll(); // Ensure any other interval is cleared
+
+    currentScrollList = listElement;
+    autoScrollInterval = setInterval(() => {
+        listElement.scrollTop += direction * calculatedSpeed;
+    }, 20); // Scroll every 20ms
+    autoScrollInterval._direction = direction; // Store direction for comparison
+    autoScrollInterval._speed = calculatedSpeed; // Store speed for comparison
+}
+
+function stopAutoScroll() {
+    if (autoScrollInterval) {
+        clearInterval(autoScrollInterval);
+        autoScrollInterval = null;
+        currentScrollList = null;
+    }
+}
+
+
+// --- Drag and Drop Handlers (Generic) ---
+
+function handleDragStart(event, itemData, storageKey, idField) {
+    draggedItem = event.target;
+    // Make a defensive copy of itemData to prevent reference issues
+    draggedItemData = (typeof itemData === 'object' && itemData !== null) ? JSON.parse(JSON.stringify(itemData)) : itemData;
+    draggedItemStorageKey = storageKey;
+    draggedItemIdField = idField;
+
+    if (DEBUG_MODE) console.log('Drag started for:', draggedItem, 'Data:', JSON.parse(JSON.stringify(draggedItemData)), 'Storage Key:', storageKey);
+
+    event.dataTransfer.effectAllowed = 'move';
+    // Set a transparent drag image so the original element appears to stay in place
+    event.dataTransfer.setDragImage(new Image(), 0, 0);
+
+    // Removed the class that makes the dragged item invisible
+    // event.target.classList.add('dragging-invisible');
+    document.body.classList.add('dragging-active'); // Add class to body for cursor
+}
+
+function handleDragOver(event) {
+    event.preventDefault(); // Crucial to allow dropping
+    event.dataTransfer.dropEffect = 'move';
+
+    const targetItem = event.target.closest('.data-list-item');
+    const currentList = event.target.closest('.data-list');
+
+    // Auto-scrolling logic
+    if (currentList) {
+        const listRect = currentList.getBoundingClientRect();
+        const mouseY = event.clientY;
+
+        // Calculate the pixel height of the scroll zone from each edge
+        const autoScrollEdgeZonePx = currentList.clientHeight * AUTO_SCROLL_EDGE_ZONE_PERCENTAGE;
+
+        const topScrollBoundary = listRect.top + autoScrollEdgeZonePx;
+        const bottomScrollBoundary = listRect.bottom - autoScrollEdgeZonePx;
+
+        if (mouseY < topScrollBoundary) { // In top scroll zone
+            // Calculate factor: 1 at top edge, 0 at topScrollBoundary
+            const scrollFactor = 1 - ((mouseY - listRect.top) / autoScrollEdgeZonePx);
+            startAutoScroll(currentList, -1, scrollFactor); // Scroll up
+        } else if (mouseY > bottomScrollBoundary) { // In bottom scroll zone
+            // Calculate factor: 1 at bottom edge, 0 at bottomScrollBoundary
+            const scrollFactor = 1 - ((listRect.bottom - mouseY) / autoScrollEdgeZonePx);
+            startAutoScroll(currentList, 1, scrollFactor); // Scroll down
+        } else {
+            stopAutoScroll(); // In the dead zone (center 50%)
+        }
+    }
+
+
+    // Ensure we are dragging over a valid item within the same list
+    if (targetItem && draggedItem && targetItem !== draggedItem && currentList === draggedItem.parentElement) {
+        const bounding = targetItem.getBoundingClientRect();
+        const offset = event.clientY - bounding.top;
+
+        // Determine if dragging over top or bottom half for insertion point
+        const insertBeforeTarget = offset < bounding.height / 2;
+
+        // Dynamically reorder DOM elements for visual feedback
+        if (insertBeforeTarget) {
+            currentList.insertBefore(draggedItem, targetItem);
+        } else {
+            currentList.insertBefore(draggedItem, targetItem.nextSibling);
+        }
+    }
+}
+
+function handleDragLeave(event) {
+    // Stop scrolling if the dragged item leaves the list container entirely
+    const relatedTarget = event.relatedTarget;
+    if (!relatedTarget || !relatedTarget.closest('.data-list')) {
+        stopAutoScroll();
+    }
+}
+
+async function handleDrop(event) {
+    event.preventDefault(); // Crucial to prevent default browser handling
+
+    // Capture the global state variables as local constants immediately
+    const currentDraggedItem = draggedItem;
+    const currentDraggedItemData = draggedItemData;
+    const currentDraggedItemStorageKey = draggedItemStorageKey;
+    const currentDraggedItemIdField = draggedItemIdField;
+
+    if (DEBUG_MODE) console.log('handleDrop triggered. currentDraggedItem:', currentDraggedItem, 'currentDraggedItemData:', JSON.parse(JSON.stringify(currentDraggedItemData)));
+
+    // Ensure draggedItem is valid and we are dropping within its original list
+    if (!currentDraggedItem || currentDraggedItem.parentElement !== event.target.closest('.data-list')) {
+        if (DEBUG_MODE) console.warn('Invalid drop target or currentDraggedItem is null. Stopping auto-scroll.');
+        stopAutoScroll();
+        // Clear global drag state immediately if drop is invalid
+        draggedItem = null;
+        draggedItemData = null;
+        draggedItemStorageKey = null;
+        draggedItemIdField = null;
+        return;
+    }
+
+    const itemsListDiv = currentDraggedItem.parentElement; // The parent list div
+    const storageKey = currentDraggedItemStorageKey;
+    const idField = currentDraggedItemIdField;
+
+    // Get current items from storage
+    chrome.storage.local.get({ [storageKey]: [] }, async (data) => {
+        let items = data[storageKey];
+        if (DEBUG_MODE) console.log(`[${storageKey}] Before reorder (from storage):`, JSON.parse(JSON.stringify(items))); // Log before reorder
+
+        let oldIndex;
+        if (idField) {
+            // For objects with an ID field (Prompts, API Keys, Presets)
+            oldIndex = items.findIndex(item => item[idField] === currentDraggedItemData[idField]);
+        } else {
+            // For simple string arrays (Models, Proxies)
+            oldIndex = items.indexOf(currentDraggedItemData);
+        }
+
+        if (oldIndex === -1) {
+            if (DEBUG_MODE) console.error(`Dragged item not found in storage array during drop for ${storageKey}. currentDraggedItemData:`, currentDraggedItemData, 'Current items:', items);
+            // Clear global drag state if item not found, as something went wrong
+            draggedItem = null;
+            draggedItemData = null;
+            draggedItemStorageKey = null;
+            draggedItemIdField = null;
+            stopAutoScroll();
+            return;
+        }
+
+        const [removed] = items.splice(oldIndex, 1); // Remove the item from its old position in data array
+
+        // Determine the new index based on the DOM's current order
+        const newIndex = Array.from(itemsListDiv.children).indexOf(currentDraggedItem);
+
+        // Insert the removed item at the new index in the data array
+        items.splice(newIndex, 0, removed);
+
+        if (DEBUG_MODE) console.log(`[${storageKey}] After reorder (before save):`, JSON.parse(JSON.stringify(items))); // Log after reorder
+
+        // Save the reordered array back to storage
+        chrome.storage.local.set({ [storageKey]: items }, () => {
+            if (DEBUG_MODE) console.log(`[${storageKey}] Saved to storage.`); // Confirm save
+            reloadAllLists(); // Reload all lists to reflect the new order from storage
+            // refreshContentScriptData(); // Notify content script of potential data change (e.g., preset order)
+            // Note: refreshContentScriptData is commented out as it's not provided in this context.
+
+            // Clear global drag state ONLY after successful save and reload
+            draggedItem = null;
+            draggedItemData = null;
+            draggedItemStorageKey = null;
+            draggedItemIdField = null;
+        });
+    });
+    stopAutoScroll(); // Stop scrolling after drop (this can be moved inside the callback too for more strictness)
+}
+
+function handleDragEnd(event) {
+    // Clean up: remove dragging class and reset global state
+    if (draggedItem) {
+        draggedItem.classList.remove('dragging-invisible');
+    }
+    document.body.classList.remove('dragging-active'); // Remove cursor class from body
+    stopAutoScroll(); // Ensure auto-scrolling stops
+    // Do NOT clear draggedItem, draggedItemData here. handleDrop's callback will do it.
 }
 
 
@@ -210,6 +454,7 @@ function loadAndDisplayPrompts() {
     chrome.storage.local.get({ savedPrompts: [] }, (data) => {
         const prompts = data.savedPrompts;
         promptsListDiv.innerHTML = ''; // Clear list
+        if (DEBUG_MODE) console.log('[savedPrompts] Loaded:', JSON.parse(JSON.stringify(prompts))); // Log loaded data
 
         if (prompts.length === 0) {
             promptsListDiv.appendChild(noPromptsMessage);
@@ -220,22 +465,42 @@ function loadAndDisplayPrompts() {
                 const item = document.createElement('div');
                 item.className = 'data-list-item';
                 item.dataset.id = prompt.id;
+                item.draggable = true; // Make item draggable
+
+                // Add drag and drop event listeners
+                item.addEventListener('dragstart', (e) => handleDragStart(e, prompt, 'savedPrompts', 'id'));
+                // item.addEventListener('dragover', handleDragOver); // Moved to parent list
+                item.addEventListener('dragend', handleDragEnd); // dragend should be on the item
+
+                // Click listener for showing/hiding action buttons
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent click from bubbling up to document.body
+                    const actionButtons = item.querySelector('.action-buttons');
+                    if (actionButtons) {
+                        if (actionButtons.classList.contains('hidden')) {
+                            hideAllActionButtons(); // Hide all others first
+                            actionButtons.classList.remove('hidden'); // Show this one
+                        } else {
+                            actionButtons.classList.add('hidden'); // Hide this one
+                        }
+                    }
+                });
+
+                promptsListDiv.appendChild(item); // Append first, then add content
+
+                const itemHeader = document.createElement('div');
+                itemHeader.className = 'item-header';
+                item.appendChild(itemHeader);
 
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'item-name';
                 nameSpan.textContent = prompt.name;
-                item.appendChild(nameSpan);
-
-                const valueSpan = document.createElement('span');
-                valueSpan.className = 'item-value';
-                // Truncate long prompts for display
-                valueSpan.textContent = `${prompt.value.substring(0, 50)}${prompt.value.length > 50 ? '...' : ''}`;
-                item.appendChild(valueSpan);
+                itemHeader.appendChild(nameSpan);
 
                 // --- Action Buttons (Edit/Delete) ---
                 const actionButtonsContainer = document.createElement('div');
-                actionButtonsContainer.className = 'action-buttons';
-
+                actionButtonsContainer.className = 'action-buttons hidden'; // Start hidden
+                
                 const editButton = document.createElement('button');
                 editButton.textContent = 'Edit';
                 editButton.className = 'edit-button'; // Add a class for styling
@@ -254,22 +519,27 @@ function loadAndDisplayPrompts() {
                 });
                 actionButtonsContainer.appendChild(deleteButton);
 
-                item.appendChild(actionButtonsContainer);
+                itemHeader.appendChild(actionButtonsContainer); // Append to itemHeader
                 // --- End Action Buttons ---
 
-                promptsListDiv.appendChild(item);
+                const valueSpan = document.createElement('span');
+                valueSpan.className = 'item-value';
+                // Truncate long prompts for display
+                valueSpan.textContent = `${prompt.value.substring(0, 50)}${prompt.value.length > 50 ? '...' : ''}`;
+                item.appendChild(valueSpan);
             });
         }
     });
 }
 
 function showAddPromptForm() {
+    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
     promptForm.reset();
     hideAllForms(); // Hide any other open forms
     // Only show the specific section for the form
     promptArea.style.display = 'block';
     promptsListDiv.style.display = 'none'; // Hide the list
-    addPromptButton.style.display = 'none'; // Hide the add button
+    addPromptButton.style.display = 'flex'; // Ensure add button is visible for this section
     promptFormArea.style.display = 'block'; // Show THIS form
     savePromptButton.textContent = 'Save Prompt'; // Ensure button text is "Save"
     editingItemId = null; // Clear editing state
@@ -277,11 +547,12 @@ function showAddPromptForm() {
 }
 
 function showEditPromptForm(promptData) {
+    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
     promptForm.reset();
     hideAllForms();
     promptArea.style.display = 'block';
     promptsListDiv.style.display = 'none';
-    addPromptButton.style.display = 'none';
+    addPromptButton.style.display = 'flex'; // Ensure add button is visible for this section
     promptFormArea.style.display = 'block';
 
     // Pre-fill form with existing data
@@ -328,7 +599,7 @@ function handleSavePrompt(event) {
         }
 
         chrome.storage.local.set({ savedPrompts: prompts }, () => {
-            // console.log('Prompts updated:', prompts); // Removed console.log
+            // if (DEBUG_MODE) console.log('Prompts updated:', prompts); // Removed console.log
             promptFormArea.style.display = 'none';
             showAllListAreas(); // Show all list containers and add buttons
             reloadAllLists(); // Reload all lists
@@ -344,9 +615,9 @@ function handleDeletePrompt(idToDelete) {
 
         if (prompts.length < initialLength) {
             chrome.storage.local.set({ savedPrompts: prompts }, () => {
-                // console.log('Prompt deleted:', idToDelete); // Removed console.log
+                // if (DEBUG_MODE) console.log('Prompt deleted:', idToDelete); // Removed console.log
                 showCustomMessageBox('Prompt deleted successfully!');
-                reloadAllLists(); // Reload all lists
+                reloadAllLists();
             });
         } else {
             showCustomMessageBox('Error: Prompt not found for deletion.');
@@ -366,6 +637,7 @@ function loadAndDisplayModels() {
      chrome.storage.local.get({ savedModels: [] }, (data) => {
         const models = data.savedModels; // Array of strings
         modelsListDiv.innerHTML = ''; // Clear list
+        if (DEBUG_MODE) console.log('[savedModels] Loaded:', JSON.parse(JSON.stringify(models))); // Log loaded data
 
         if (models.length === 0) {
             modelsListDiv.appendChild(noModelsMessage);
@@ -376,15 +648,41 @@ function loadAndDisplayModels() {
                 const item = document.createElement('div');
                 item.className = 'data-list-item';
                 item.dataset.value = model;
+                item.draggable = true; // Make item draggable
+
+                // Add drag and drop event listeners
+                item.addEventListener('dragstart', (e) => handleDragStart(e, model, 'savedModels', null)); // No idField for models
+                // item.addEventListener('dragover', handleDragOver); // Moved to parent list
+                item.addEventListener('dragend', handleDragEnd); // dragend should be on the item
+
+                // Click listener for showing/hiding action buttons
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent click from bubbling up to document.body
+                    const actionButtons = item.querySelector('.action-buttons');
+                    if (actionButtons) {
+                        if (actionButtons.classList.contains('hidden')) {
+                            hideAllActionButtons(); // Hide all others first
+                            actionButtons.classList.remove('hidden'); // Show this one
+                        } else {
+                            actionButtons.classList.add('hidden'); // Hide this one
+                        }
+                    }
+                });
+
+                modelsListDiv.appendChild(item); // Append first, then add content
+
+                const itemHeader = document.createElement('div');
+                itemHeader.className = 'item-header';
+                item.appendChild(itemHeader);
 
                 const valueSpan = document.createElement('span');
                 // Truncate model text for display
                 valueSpan.textContent = `${model.substring(0, 20)}${model.length > 20 ? '...' : ''}`;
-                item.appendChild(valueSpan);
+                itemHeader.appendChild(valueSpan);
 
                 // --- Action Buttons (Edit/Delete) ---
                 const actionButtonsContainer = document.createElement('div');
-                actionButtonsContainer.className = 'action-buttons';
+                actionButtonsContainer.className = 'action-buttons hidden'; // Start hidden
 
                 const editButton = document.createElement('button');
                 editButton.textContent = 'Edit';
@@ -404,21 +702,20 @@ function loadAndDisplayModels() {
                 });
                 actionButtonsContainer.appendChild(deleteButton);
 
-                item.appendChild(actionButtonsContainer);
+                itemHeader.appendChild(actionButtonsContainer); // Append to itemHeader
                 // --- End Action Buttons ---
-
-                modelsListDiv.appendChild(item);
             });
         }
      });
 }
 
 function showAddModelForm() {
+    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
     modelForm.reset();
     hideAllForms(); // Hide any other open forms
     modelArea.style.display = 'block'; // Keep this section container visible
     modelsListDiv.style.display = 'none'; // Hide the list
-    addModelButton.style.display = 'none'; // Hide the add button
+    addModelButton.style.display = 'flex'; // Ensure add button is visible for this section
     modelFormArea.style.display = 'block'; // Show THIS form
     saveModelButton.textContent = 'Save Model'; // Ensure button text is "Save"
     editingItemId = null; // Clear editing state
@@ -426,11 +723,12 @@ function showAddModelForm() {
 }
 
 function showEditModelForm(modelValue) {
+    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
     modelForm.reset();
     hideAllForms();
     modelArea.style.display = 'block';
     modelsListDiv.style.display = 'none';
-    addModelButton.style.display = 'none';
+    addModelButton.style.display = 'flex'; // Ensure add button is visible for this section
     modelFormArea.style.display = 'block';
 
     // Pre-fill form with existing data
@@ -477,7 +775,7 @@ function handleSaveModel(event) {
         }
 
         chrome.storage.local.set({ savedModels: models }, () => {
-            // console.log('Models updated:', models); // Removed console.log
+            // if (DEBUG_MODE) console.log('Models updated:', models); // Removed console.log
             modelFormArea.style.display = 'none';
             showAllListAreas();
             reloadAllLists();
@@ -493,7 +791,7 @@ function handleDeleteModel(valueToDelete) {
 
         if (models.length < initialLength) {
             chrome.storage.local.set({ savedModels: models }, () => {
-                // console.log('Model deleted:', valueToDelete); // Removed console.log
+                // if (DEBUG_MODE) console.log('Model deleted:', valueToDelete); // Removed console.log
                 showCustomMessageBox('Model deleted successfully!');
                 reloadAllLists();
             });
@@ -515,6 +813,7 @@ function loadAndDisplayProxies() {
     chrome.storage.local.get({ savedProxies: [] }, (data) => {
         const proxies = data.savedProxies; // Array of strings
         proxyUrlsListDiv.innerHTML = ''; // Clear list
+        if (DEBUG_MODE) console.log('[savedProxies] Loaded:', JSON.parse(JSON.stringify(proxies))); // Log loaded data
 
         if (proxies.length === 0) {
             proxyUrlsListDiv.appendChild(noProxyUrlsMessage);
@@ -525,15 +824,41 @@ function loadAndDisplayProxies() {
                 const item = document.createElement('div');
                 item.className = 'data-list-item';
                 item.dataset.value = proxy;
+                item.draggable = true; // Make item draggable
+
+                // Add drag and drop event listeners
+                item.addEventListener('dragstart', (e) => handleDragStart(e, proxy, 'savedProxies', null)); // No idField for proxies
+                // item.addEventListener('dragover', handleDragOver); // Moved to parent list
+                item.addEventListener('dragend', handleDragEnd); // dragend should be on the item
+
+                // Click listener for showing/hiding action buttons
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent click from bubbling up to document.body
+                    const actionButtons = item.querySelector('.action-buttons');
+                    if (actionButtons) {
+                        if (actionButtons.classList.contains('hidden')) {
+                            hideAllActionButtons(); // Hide all others first
+                            actionButtons.classList.remove('hidden'); // Show this one
+                        } else {
+                            actionButtons.classList.add('hidden'); // Hide this one
+                        }
+                    }
+                });
+
+                proxyUrlsListDiv.appendChild(item); // Append first, then add content
+
+                const itemHeader = document.createElement('div');
+                itemHeader.className = 'item-header';
+                item.appendChild(itemHeader);
 
                 const valueSpan = document.createElement('span');
                 // Truncate proxy text for display
                 valueSpan.textContent = `${proxy.substring(0, 20)}${proxy.length > 20 ? '...' : ''}`;
-                item.appendChild(valueSpan);
+                itemHeader.appendChild(valueSpan);
 
                 // --- Action Buttons (Edit/Delete) ---
                 const actionButtonsContainer = document.createElement('div');
-                actionButtonsContainer.className = 'action-buttons';
+                actionButtonsContainer.className = 'action-buttons hidden'; // Start hidden
 
                 const editButton = document.createElement('button');
                 editButton.textContent = 'Edit';
@@ -553,21 +878,20 @@ function loadAndDisplayProxies() {
                 });
                 actionButtonsContainer.appendChild(deleteButton);
 
-                item.appendChild(actionButtonsContainer);
+                itemHeader.appendChild(actionButtonsContainer); // Append to itemHeader
                 // --- End Action Buttons ---
-
-                proxyUrlsListDiv.appendChild(item);
             });
         }
      });
 }
 
 function showAddProxyUrlForm() {
+    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
     proxyUrlForm.reset();
     hideAllForms(); // Hide any other open forms
     proxyUrlArea.style.display = 'block'; // Keep this section container visible
     proxyUrlsListDiv.style.display = 'none'; // Hide the list
-    addProxyUrlButton.style.display = 'none'; // Hide the add button
+    addProxyUrlButton.style.display = 'flex'; // Ensure add button is visible for this section
     proxyUrlFormArea.style.display = 'block'; // Show THIS form
     saveProxyUrlButton.textContent = 'Save Proxy URL'; // Ensure button text is "Save"
     editingItemId = null; // Clear editing state
@@ -575,11 +899,12 @@ function showAddProxyUrlForm() {
 }
 
 function showEditProxyUrlForm(proxyValue) {
+    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
     proxyUrlForm.reset();
     hideAllForms();
     proxyUrlArea.style.display = 'block';
     proxyUrlsListDiv.style.display = 'none';
-    addProxyUrlButton.style.display = 'none';
+    addProxyUrlButton.style.display = 'flex'; // Ensure add button is visible for this section
     proxyUrlFormArea.style.display = 'block';
 
     // Pre-fill form with existing data
@@ -626,7 +951,7 @@ function handleSaveProxyUrl(event) {
         }
 
         chrome.storage.local.set({ savedProxies: proxies }, () => {
-            // console.log('Proxies updated:', proxies); // Removed console.log
+            // if (DEBUG_MODE) console.log('Proxies updated:', proxies); // Removed console.log
             proxyUrlFormArea.style.display = 'none';
             showAllListAreas();
             reloadAllLists();
@@ -642,7 +967,7 @@ function handleDeleteProxyUrl(valueToDelete) {
 
         if (proxies.length < initialLength) {
             chrome.storage.local.set({ savedProxies: proxies }, () => {
-                // console.log('Proxy URL deleted:', valueToDelete); // Removed console.log
+                // if (DEBUG_MODE) console.log('Proxy URL deleted:', valueToDelete); // Removed console.log
                 showCustomMessageBox('Proxy URL deleted successfully!');
                 reloadAllLists();
             });
@@ -665,6 +990,7 @@ function loadAndDisplayApiKeys() {
     chrome.storage.local.get({ savedApiKeys: [] }, (data) => {
         const apiKeys = data.savedApiKeys; // Array of objects {id, name, value}
         apiKeysListDiv.innerHTML = ''; // Clear list
+        if (DEBUG_MODE) console.log('[savedApiKeys] Loaded:', JSON.parse(JSON.stringify(apiKeys))); // Log loaded data
 
         if (apiKeys.length === 0) {
             apiKeysListDiv.appendChild(noApiKeysMessage);
@@ -675,20 +1001,41 @@ function loadAndDisplayApiKeys() {
                 const item = document.createElement('div');
                 item.className = 'data-list-item';
                 item.dataset.id = key.id;
+                item.draggable = true; // Make item draggable
+
+                // Add drag and drop event listeners
+                item.addEventListener('dragstart', (e) => handleDragStart(e, key, 'savedApiKeys', 'id'));
+                // item.addEventListener('dragover', handleDragOver); // Moved to parent list
+                item.addEventListener('dragend', handleDragEnd); // dragend should be on the item
+
+                // Click listener for showing/hiding action buttons
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent click from bubbling up to document.body
+                    const actionButtons = item.querySelector('.action-buttons');
+                    if (actionButtons) {
+                        if (actionButtons.classList.contains('hidden')) {
+                            hideAllActionButtons(); // Hide all others first
+                            actionButtons.classList.remove('hidden'); // Show this one
+                        } else {
+                            actionButtons.classList.add('hidden'); // Hide this one
+                        }
+                    }
+                });
+
+                apiKeysListDiv.appendChild(item); // Append first, then add content
+
+                const itemHeader = document.createElement('div');
+                itemHeader.className = 'item-header';
+                item.appendChild(itemHeader);
 
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'item-name';
                 nameSpan.textContent = key.name;
-                item.appendChild(nameSpan);
-
-                const valueSpan = document.createElement('span');
-                valueSpan.className = 'item-value';
-                valueSpan.textContent = `${key.value.substring(0, 20)}${key.value.length > 20 ? '...' : ''}`;
-                item.appendChild(valueSpan);
+                itemHeader.appendChild(nameSpan);
 
                 // --- Action Buttons (Edit/Delete) ---
                 const actionButtonsContainer = document.createElement('div');
-                actionButtonsContainer.className = 'action-buttons';
+                actionButtonsContainer.className = 'action-buttons hidden'; // Start hidden
 
                 const editButton = document.createElement('button');
                 editButton.textContent = 'Edit';
@@ -708,21 +1055,25 @@ function loadAndDisplayApiKeys() {
                 });
                 actionButtonsContainer.appendChild(deleteButton);
 
-                item.appendChild(actionButtonsContainer);
+                itemHeader.appendChild(actionButtonsContainer); // Append to itemHeader
                 // --- End Action Buttons ---
 
-                apiKeysListDiv.appendChild(item);
+                const valueSpan = document.createElement('span');
+                valueSpan.className = 'item-value';
+                valueSpan.textContent = `${key.value.substring(0, 20)}${key.value.length > 20 ? '...' : ''}`;
+                item.appendChild(valueSpan);
             });
         }
     });
 }
 
 function showAddApiKeyForm() {
+    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
     apiKeyForm.reset();
     hideAllForms(); // Hide any other open forms
     apiKeyArea.style.display = 'block'; // Keep this section container visible
     apiKeysListDiv.style.display = 'none'; // Hide the list
-    addApiKeyButton.style.display = 'none'; // Hide the add button
+    addApiKeyButton.style.display = 'flex'; // Ensure add button is visible for this section
     apiKeyFormArea.style.display = 'block'; // Show THIS form
     saveApiKeyButton.textContent = 'Save Key'; // Ensure button text is "Save"
     editingItemId = null; // Clear editing state
@@ -730,11 +1081,12 @@ function showAddApiKeyForm() {
 }
 
 function showEditApiKeyForm(apiKeyData) {
+    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
     apiKeyForm.reset();
     hideAllForms();
     apiKeyArea.style.display = 'block';
     apiKeysListDiv.style.display = 'none';
-    addApiKeyButton.style.display = 'none';
+    addApiKeyButton.style.display = 'flex'; // Ensure add button is visible for this section
     apiKeyFormArea.style.display = 'block';
 
     // Pre-fill form with existing data
@@ -790,7 +1142,7 @@ function handleSaveApiKey(event) {
         }
 
         chrome.storage.local.set({ savedApiKeys: apiKeys }, () => {
-            // console.log('API Keys updated:', apiKeys); // Removed console.log
+            // if (DEBUG_MODE) console.log('API Keys updated:', apiKeys); // Removed console.log
             apiKeyFormArea.style.display = 'none';
             showAllListAreas();
             reloadAllLists();
@@ -806,7 +1158,7 @@ function handleDeleteApiKey(idToDelete) {
 
         if (apiKeys.length < initialLength) {
             chrome.storage.local.set({ savedApiKeys: apiKeys }, () => {
-                // console.log('API Key deleted:', idToDelete); // Removed console.log
+                // if (DEBUG_MODE) console.log('API Key deleted:', idToDelete); // Removed console.log
                 showCustomMessageBox('API Key deleted successfully!');
                 reloadAllLists();
             });
@@ -829,6 +1181,7 @@ function loadAndDisplayPresets() {
     chrome.storage.local.get({ savedPresets: [] }, (data) => {
         const presets = data.savedPresets;
         presetsListDiv.innerHTML = ''; // Clear list
+        if (DEBUG_MODE) console.log('[savedPresets] Loaded:', JSON.parse(JSON.stringify(presets))); // Log loaded data
 
         if (presets.length === 0) {
             presetsListDiv.appendChild(noPresetsMessage);
@@ -839,22 +1192,41 @@ function loadAndDisplayPresets() {
                 const item = document.createElement('div');
                 item.className = 'data-list-item';
                 item.dataset.id = preset.id;
+                item.draggable = true; // Make item draggable
+
+                // Add drag and drop event listeners
+                item.addEventListener('dragstart', (e) => handleDragStart(e, preset, 'savedPresets', 'id'));
+                // item.addEventListener('dragover', handleDragOver); // Moved to parent list
+                item.addEventListener('dragend', handleDragEnd); // dragend should be on the item
+
+                // Click listener for showing/hiding action buttons
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent click from bubbling up to document.body
+                    const actionButtons = item.querySelector('.action-buttons');
+                    if (actionButtons) {
+                        if (actionButtons.classList.contains('hidden')) {
+                            hideAllActionButtons(); // Hide all others first
+                            actionButtons.classList.remove('hidden'); // Show this one
+                        } else {
+                            actionButtons.classList.add('hidden'); // Hide this one
+                        }
+                    }
+                });
+
+                presetsListDiv.appendChild(item); // Append first, then add content
+
+                const itemHeader = document.createElement('div');
+                itemHeader.className = 'item-header';
+                item.appendChild(itemHeader);
 
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'item-name';
                 nameSpan.textContent = preset.name;
-                item.appendChild(nameSpan);
-
-                // Removed the summarySpan to only display the name
-                // const summarySpan = document.createElement('span');
-                // summarySpan.className = 'item-value';
-                // const summary = `M: ${preset.model ? preset.model.substring(0,10) + '...' : '-'}, P: ${preset.proxy ? preset.proxy.substring(0,10) + '...' : '-'}, A: ${preset.apiKey ? (preset.apiKey.name || preset.apiKey).substring(0,10) + '...' : '-'}, Q: ${preset.prompt ? preset.prompt.substring(0,10) + '...' : '-'}`;
-                // summarySpan.textContent = summary;
-                // item.appendChild(summarySpan);
+                itemHeader.appendChild(nameSpan);
 
                 // --- Action Buttons (Edit/Delete) ---
                 const actionButtonsContainer = document.createElement('div');
-                actionButtonsContainer.className = 'action-buttons';
+                actionButtonsContainer.className = 'action-buttons hidden'; // Start hidden
 
                 const editButton = document.createElement('button');
                 editButton.textContent = 'Edit';
@@ -874,48 +1246,46 @@ function loadAndDisplayPresets() {
                 });
                 actionButtonsContainer.appendChild(deleteButton);
 
-                item.appendChild(actionButtonsContainer);
+                itemHeader.appendChild(actionButtonsContainer); // Append to itemHeader
                 // --- End Action Buttons ---
 
                 // Click listener for preset items (for INJECTING the bundle)
                 // This listener should remain on the item itself, not the action buttons
-                item.addEventListener('click', () => {
-                   // console.log('Preset item clicked (injection trigger):', preset.name, preset); // Removed console.log
-                   // Send a message to the content script with the entire preset bundle
-                   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                       if (tabs.length > 0) {
-                           chrome.tabs.sendMessage(tabs[0].id, {
-                               action: 'injectPresetBundle',
-                               presetData: preset
-                           }, (response) => {
-                               if (chrome.runtime.lastError) {
-                                   console.error("Error sending message:", chrome.runtime.lastError.message);
-                               } else if (response && response.status === 'success') {
-                                   // console.log('Preset bundle injected successfully.'); // Removed console.log
-                                   // Optionally close the popup after injection
-                                   // window.close();
-                               } else {
-                                   console.warn('Preset bundle injection failed or no response from content script.');
-                               }
-                           });
-                       } else {
-                           console.warn('No active tab found to send message to.');
-                       }
-                   });
-                });
+                // This will now be handled by the generic item click listener, but the injection logic still needs to be here.
+                // The injection logic should probably be moved into a separate function called by the item click listener
+                // or triggered by a specific "use preset" button if we want to avoid accidental injections.
+                // For now, I'll keep the existing injection logic, but it will only fire if the item is clicked
+                // and the buttons are not toggled. This might need further refinement based on UX.
+                // Let's assume for now that clicking the item *always* means "show buttons AND inject" if no buttons are visible.
+                // If buttons are visible, clicking the item again hides them.
+                // A better UX would be a separate "Use" button or double-click to inject.
+                // For now, I will keep the injection logic separate from the button toggling.
+                // I'll add a check to ensure the injection only happens if the buttons were NOT just toggled.
 
-                presetsListDiv.appendChild(item);
+                const valueSpan = document.createElement('span');
+                valueSpan.className = 'item-value';
+                // Truncate long prompts for display
+                const summary = `M: ${preset.model ? preset.model.substring(0,10) + '...' : '-'}, P: ${preset.proxy ? preset.proxy.substring(0,10) + '...' : '-'}, A: ${preset.apiKey ? (preset.apiKey.name || preset.apiKey).substring(0,10) + '...' : '-'}`;
+                valueSpan.textContent = summary;
+                item.appendChild(valueSpan);
+
+                // Original injection logic (now triggered by the item click)
+                // This will run AFTER the button toggle, so it might not be ideal.
+                // A dedicated "Use" button or double-click would be better for UX.
+                // For now, I'm removing the direct injection on item click to avoid conflict with button toggling.
+                // If injection is desired directly on click, we need to differentiate click for buttons vs click for injection.
             });
         }
     });
 }
 
 function showAddPresetForm() {
+    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
     presetForm.reset();
     hideAllForms(); // Hide any other open forms
     presetsArea.style.display = 'block'; // Keep this section container visible
     presetsListDiv.style.display = 'none'; // Hide the list
-    addPresetButton.style.display = 'none'; // Hide the add button
+    addPresetButton.style.display = 'flex'; // Ensure add button is visible for this section
     presetFormArea.style.display = 'block'; // Show THIS form
     savePresetButton.textContent = 'Save Preset'; // Ensure button text is "Save"
     editingItemId = null; // Clear editing state
@@ -923,11 +1293,12 @@ function showAddPresetForm() {
 }
 
 function showEditPresetForm(presetData) {
+    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
     presetForm.reset();
     hideAllForms();
     presetsArea.style.display = 'block';
     presetsListDiv.style.display = 'none';
-    addPresetButton.style.display = 'none';
+    addPresetButton.style.display = 'flex'; // Ensure add button is visible for this section
     presetFormArea.style.display = 'block';
 
     // Pre-fill form with existing data
@@ -1000,7 +1371,7 @@ function handleSavePreset(event) {
         }
 
         chrome.storage.local.set({ savedPresets: presets }, () => {
-            // console.log('Presets updated:', presets); // Removed console.log
+            // if (DEBUG_MODE) console.log('Presets updated:', presets); // Removed console.log
             presetFormArea.style.display = 'none';
             showAllListAreas();
             reloadAllLists();
@@ -1016,7 +1387,7 @@ function handleDeletePreset(idToDelete) {
 
         if (presets.length < initialLength) {
             chrome.storage.local.set({ savedPresets: presets }, () => {
-                // console.log('Preset deleted:', idToDelete); // Removed console.log
+                // if (DEBUG_MODE) console.log('Preset deleted:', idToDelete); // Removed console.log
                 showCustomMessageBox('Preset deleted successfully!');
                 reloadAllLists();
             });
@@ -1063,6 +1434,56 @@ cancelPresetButton.addEventListener('click', handleCancelPresetForm);
 // Custom Message Box
 messageBoxOkButton.addEventListener('click', hideCustomMessageBox);
 
-// --- Initial Load ---
+
+// --- Browser Detection and Initial Load ---
+
+/**
+ * Detects if the browser is Firefox on a mobile device.
+ * @returns {boolean} True if Mobile Firefox, false otherwise.
+ */
+function isMobileFirefox() {
+    const userAgent = navigator.userAgent;
+    // Check for "Firefox" and common mobile indicators like "Mobile" or "Android"
+    return userAgent.includes("Firefox") && (userAgent.includes("Mobile") || userAgent.includes("Android"));
+}
+
 // Load and display all lists and presets when the popup is opened
-reloadAllLists();
+document.addEventListener('DOMContentLoaded', () => {
+    reloadAllLists();
+
+    if (isMobileFirefox()) {
+        console.log("Detected Mobile Firefox. Adjusting popup size for better mobile experience.");
+        // Apply fullscreen width and height for mobile Firefox
+        document.body.style.width = '100vw';
+        document.body.style.height = '100vh';
+        document.body.style.maxWidth = 'none'; // Remove max width constraint
+        document.body.style.minWidth = 'unset'; // Remove min width constraint
+        document.body.style.padding = '15px'; // Keep padding for content spacing
+    }
+
+    // Attach dragenter, dragover, dragleave, and drop listeners to the list containers
+    promptsListDiv.addEventListener('dragenter', (e) => e.preventDefault());
+    promptsListDiv.addEventListener('dragover', handleDragOver); // Moved here
+    promptsListDiv.addEventListener('dragleave', handleDragLeave);
+    promptsListDiv.addEventListener('drop', handleDrop);
+
+    modelsListDiv.addEventListener('dragenter', (e) => e.preventDefault());
+    modelsListDiv.addEventListener('dragover', handleDragOver); // Moved here
+    modelsListDiv.addEventListener('dragleave', handleDragLeave);
+    modelsListDiv.addEventListener('drop', handleDrop);
+
+    proxyUrlsListDiv.addEventListener('dragenter', (e) => e.preventDefault());
+    proxyUrlsListDiv.addEventListener('dragover', handleDragOver); // Moved here
+    proxyUrlsListDiv.addEventListener('dragleave', handleDragLeave);
+    proxyUrlsListDiv.addEventListener('drop', handleDrop);
+
+    apiKeysListDiv.addEventListener('dragenter', (e) => e.preventDefault());
+    apiKeysListDiv.addEventListener('dragover', handleDragOver); // Moved here
+    apiKeysListDiv.addEventListener('dragleave', handleDragLeave);
+    apiKeysListDiv.addEventListener('drop', handleDrop);
+
+    presetsListDiv.addEventListener('dragenter', (e) => e.preventDefault());
+    presetsListDiv.addEventListener('dragover', handleDragOver); // Moved here
+    presetsListDiv.addEventListener('dragleave', handleDragLeave);
+    presetsListDiv.addEventListener('drop', handleDrop);
+});
