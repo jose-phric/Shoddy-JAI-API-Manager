@@ -139,7 +139,6 @@ function insertCyclerIntoDOM(newElement, parentSelectors, referenceSelectors, cy
     if (!referenceElement) {
         console.warn(`Could not inject ${cyclerType} cycler: Reference element "${referenceSelectors.join(' OR ')}" not found. Appending to parent.`);
         parentElement.appendChild(newElement);
-        // console.log(`${cyclerType} cycler appended.`); // Removed console.log
         return;
     }
 
@@ -153,11 +152,9 @@ function insertCyclerIntoDOM(newElement, parentSelectors, referenceSelectors, cy
         // To insert AFTER the reference element, we insert BEFORE its next sibling.
         // If there's no next sibling, it will be appended to the end of the parent.
         parentElement.insertBefore(newElement, actualInsertionPoint.nextSibling);
-        // console.log(`${cyclerType} cycler injected after its logical insertion point.`); // Removed console.log
     } else {
         console.warn(`Could not find a suitable insertion point for ${cyclerType} cycler within parent "${parentSelectors.join(' OR ')}". Appending instead.`);
         parentElement.appendChild(newElement);
-        // console.log(`${cyclerType} cycler appended.`); // Removed console.log
     }
 }
 
@@ -179,11 +176,11 @@ const createAndInjectPromptCycler = (prompts) => {
 
     const promptSelect = createStyledSelect('janitor-prompt-cycler');
 
-    // Add a default "Select Prompt" option
-    const defaultOption = document.createElement('option');
-    defaultOption.value = '';
-    defaultOption.textContent = 'Select Prompt';
-    promptSelect.appendChild(defaultOption);
+    // Removed the default "Select Prompt" option as requested
+    // const defaultOption = document.createElement('option');
+    // defaultOption.value = '';
+    // defaultOption.textContent = 'Select Prompt';
+    // promptSelect.appendChild(defaultOption);
 
     prompts.forEach(prompt => {
         const option = document.createElement('option');
@@ -197,11 +194,23 @@ const createAndInjectPromptCycler = (prompts) => {
         const matchingPrompt = prompts.find(p => p.value === promptInput.value);
         if (matchingPrompt) {
             promptSelect.value = matchingPrompt.value;
+        } else if (prompts.length > 0) {
+            // If current value doesn't match, but we have prompts, select the first one
+            promptSelect.value = prompts[0].value;
+            promptInput.value = prompts[0].value; // Also update the input with the first prompt
+            const event_ = new Event('input', { bubbles: true });
+            promptInput.dispatchEvent(event_);
         } else {
-            promptSelect.value = ''; // If current value doesn't match, default to blank
+            promptSelect.value = ''; // If no prompts, default to blank
         }
+    } else if (prompts.length > 0) {
+        // If input is empty, but we have prompts, select the first one
+        promptSelect.value = prompts[0].value;
+        promptInput.value = prompts[0].value; // Also update the input with the first prompt
+        const event_ = new Event('input', { bubbles: true });
+        promptInput.dispatchEvent(event_);
     } else {
-        promptSelect.value = ''; // If input is empty, default to blank
+        promptSelect.value = ''; // If no prompts and input is empty, default to blank
     }
 
 
@@ -315,11 +324,11 @@ const createAndInjectApiKeyCycler = (apiKeys) => {
 
     const apiKeySelect = createStyledSelect('janitor-api-key-cycler');
 
-    // Add a default "Select API Key" option (this one will remain as it refers to a named key)
-    const defaultOption = document.createElement('option');
-    defaultOption.value = '';
-    defaultOption.textContent = 'Select API Key';
-    apiKeySelect.appendChild(defaultOption);
+    // Removed the default "Select API Key" option as requested
+    // const defaultOption = document.createElement('option');
+    // defaultOption.value = '';
+    // defaultOption.textContent = 'Select API Key';
+    // apiKeySelect.appendChild(defaultOption);
 
     apiKeys.forEach(key => {
         const option = document.createElement('option');
@@ -333,12 +342,24 @@ const createAndInjectApiKeyCycler = (apiKeys) => {
         const matchingKey = apiKeys.find(key => key.value === apiKeyInput.value);
         if (matchingKey) {
             apiKeySelect.value = matchingKey.value;
+        } else if (apiKeys.length > 0) {
+            // If the current input value doesn't match a saved key, but we have keys, select the first one
+            apiKeySelect.value = apiKeys[0].value;
+            apiKeyInput.value = apiKeys[0].value; // Also update the input with the first key
+            const event_ = new Event('input', { bubbles: true });
+            apiKeyInput.dispatchEvent(event_);
         } else {
-            // If the current input value doesn't match a saved key, default to blank
+            // If no keys, default to blank
             apiKeySelect.value = '';
         }
+    } else if (apiKeys.length > 0) {
+        // If input is empty, but we have keys, select the first one
+        apiKeySelect.value = apiKeys[0].value;
+        apiKeyInput.value = apiKeys[0].value; // Also update the input with the first key
+        const event_ = new Event('input', { bubbles: true });
+        apiKeyInput.dispatchEvent(event_);
     } else {
-        // If input is empty, default to blank
+        // If no keys and input is empty, default to blank
         apiKeySelect.value = '';
     }
 
@@ -364,7 +385,6 @@ const populateCustomPrompt = (text) => {
         // Dispatch an 'input' event to trigger any React/Vue listeners
         const event = new Event('input', { bubbles: true });
         textarea.dispatchEvent(event);
-        // console.log('Custom prompt populated.'); // Removed console.log
     } else {
         console.warn('Custom prompt textarea not found.');
     }
@@ -376,8 +396,6 @@ const populateCustomPrompt = (text) => {
  * @param {Array<Object>} presets - The array of saved preset objects.
  */
 const createAndInjectPresetButtons = (presets) => {
-    // console.log('Attempting to create and inject preset buttons with presets:', presets); // Removed console.log
-
     // Get the original preset buttons container (which is now back)
     const originalPresetButtonsContainer = findElementBySelectors(originalPresetButtonsContainerSelectors);
 
@@ -424,7 +442,6 @@ const createAndInjectPresetButtons = (presets) => {
         `;
         // Insert after the original preset buttons container
         originalPresetButtonsContainer.parentElement.insertBefore(customButtonsContainer, originalPresetButtonsContainer.nextSibling);
-        // console.log('New custom buttons container created and inserted after original preset buttons.'); // Removed console.log
     }
 
     populatePresetButtons(customButtonsContainer, presets);
@@ -507,7 +524,6 @@ function populatePresetButtons(container, presets) {
             };
 
             button.addEventListener('click', () => {
-                // console.log('Preset button clicked:', preset.name); // Removed console.log
                 populateCustomPrompt(preset.prompt);
 
                 const modelInput = findElementBySelectors(MODEL_INPUT_SELECTOR_OPTIONS);
@@ -515,12 +531,10 @@ function populatePresetButtons(container, presets) {
                     modelInput.value = preset.model;
                     const event_ = new Event('input', { bubbles: true });
                     modelInput.dispatchEvent(event_);
-                    // console.log('Model populated:', preset.model); // Removed console.log
                 } else if (modelInput) {
                     modelInput.value = ''; // Clear if preset has no model
                     const event_ = new Event('input', { bubbles: true });
                     modelInput.dispatchEvent(event_);
-                    // console.log('Model cleared (preset has no model).'); // Removed console.log
                 }
 
                 const proxyInput = findElementBySelectors(PROXY_URL_INPUT_SELECTOR_OPTIONS);
@@ -552,18 +566,14 @@ function populatePresetButtons(container, presets) {
 }
 
 
-// --- New logic using MutationObserver to detect the modal overlay ---
+// New logic using MutationObserver to detect the modal overlay
 
 // Function to execute when the modal is found
 const onModalAppears = () => {
-  // console.log('Modal overlay detected! Running your script...'); // Removed console.log
-
   // Find the original preset buttons container to trigger injection
   const originalPresetButtonsContainer = findElementBySelectors(originalPresetButtonsContainerSelectors);
 
   if (originalPresetButtonsContainer) {
-    // console.log('Original preset buttons container found for cyclers:', originalPresetButtonsContainer); // Removed console.log
-
     // Initial injection of buttons and cyclers
     chrome.storage.local.get(['savedPresets'], (data) => {
         const presets = data.savedPresets || [];
@@ -581,7 +591,7 @@ const onModalAppears = () => {
             const apiKeys = data.savedApiKeys || [];
 
             if (prompts && prompts.length > 0) createAndInjectPromptCycler(prompts);
-            else { const existingPromptCycler = document.getElementById('janitor-prompt-cycler'); if (existingPromptCycler) existingPromptCycler.remove(); }
+            else { const existingPromptCycler = document.getElementById('janitor-prompt-cycler'); if (existingCycler) existingCycler.remove(); }
 
             if (models && models.length > 0) createAndInjectModelCycler(models);
             else { const existingModelCycler = document.getElementById('janitor-model-cycler'); if (existingModelCycler) existingModelCycler.remove(); }
@@ -598,7 +608,6 @@ const onModalAppears = () => {
 // Listen for messages from the popup script (e.g., when a preset is saved/deleted)
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'refreshContentScriptData') {
-        // console.log('Content script received refresh command.'); // Removed console.log
         // Re-run the logic to create/update buttons and cyclers
         chrome.storage.local.get(['savedPresets'], (data) => {
             const presets = data.savedPresets || [];
@@ -607,7 +616,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ status: 'refreshed' });
     } else if (request.action === 'injectPresetBundle') {
         // This is triggered when a preset is clicked in the popup
-        // console.log('Content script received preset bundle for injection:', request.presetData); // Removed console.log
         populateCustomPrompt(request.presetData.prompt);
 
         const modelInput = findElementBySelectors(MODEL_INPUT_SELECTOR_OPTIONS);
@@ -676,7 +684,6 @@ const observer = new MutationObserver((mutationsList) => {
 
 // Start observing the document body for changes in its children and their descendants
 observer.observe(document.body, { childList: true, subtree: true });
-// console.log('MutationObserver started, waiting for modal overlay...'); // Removed console.log
 
 // Also check if the modal is already open on window load (e.g., if page reloaded with modal open)
 window.addEventListener('load', () => {

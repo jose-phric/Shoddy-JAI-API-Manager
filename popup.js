@@ -13,9 +13,21 @@ const DEBUG_MODE = false; // Set to true to enable console logs, false to disabl
 // savedProxies: Array of String ('Proxy URL')
 // savedApiKeys: Array of { id: 'unique-id', name: 'Key Name', value: 'Key Value' }
 // savedPresets: Array of { id: 'unique-id', name: 'Preset Name', prompt: 'Prompt Text', model: 'Model Name', proxy: 'Proxy URL', apiKey: 'Key Value' }
+// savedThemes: Array of { id: 'unique-id', name: 'Theme Name', colors: { ... } }
+// currentThemeId: String (ID of the currently active theme)
 
 
 // --- Element References ---
+
+// View Containers
+const mainView = document.getElementById('mainView');
+const settingsView = document.getElementById('settingsView');
+
+// Top Bar Elements
+const mainHeading = document.getElementById('mainHeading');
+const settingsButton = document.getElementById('settingsButton');
+const backButton = document.getElementById('backButton');
+
 
 // Main sections (Containers for list + add button + form)
 const promptArea = document.getElementById('promptArea');
@@ -23,6 +35,10 @@ const modelArea = document.getElementById('modelArea');
 const proxyUrlArea = document.getElementById('proxyUrlArea');
 const apiKeyArea = document.getElementById('apiKeyArea');
 const presetsArea = document.getElementById('presetsArea');
+const defaultThemesArea = document.getElementById('defaultThemesArea');
+const customThemesArea = document.getElementById('customThemesArea');
+const importExportArea = document.getElementById('importExportArea'); // NEW
+
 
 // List divs (direct parent of items)
 const promptsListDiv = document.getElementById('promptsList');
@@ -30,6 +46,8 @@ const modelsListDiv = document.getElementById('modelsList');
 const proxyUrlsListDiv = document.getElementById('proxyUrlsList');
 const apiKeysListDiv = document.getElementById('apiKeysList');
 const presetsListDiv = document.getElementById('presetsList');
+const defaultThemesListDiv = document.getElementById('defaultThemesList');
+const customThemesListDiv = document.getElementById('customThemesList');
 
 // Add buttons
 const addPromptButton = document.getElementById('addPromptButton');
@@ -37,6 +55,7 @@ const addModelButton = document.getElementById('addModelButton');
 const addProxyUrlButton = document.getElementById('addProxyUrlButton');
 const addApiKeyButton = document.getElementById('addApiKeyButton');
 const addPresetButton = document.getElementById('addPresetButton');
+const addCustomThemeButton = document.getElementById('addCustomThemeButton');
 
 // "No items" messages
 const noPromptsMessage = document.getElementById('noPromptsMessage');
@@ -44,6 +63,8 @@ const noModelsMessage = document.getElementById('noModelsMessage');
 const noProxyUrlsMessage = document.getElementById('noProxyUrlsMessage');
 const noApiKeysMessage = document.getElementById('noApiKeysMessage');
 const noPresetsMessage = document.getElementById('noPresetsMessage');
+const noDefaultThemesMessage = document.getElementById('noDefaultThemesMessage');
+const noCustomThemesMessage = document.getElementById('noCustomThemesMessage');
 
 
 // Form Areas (Containers for forms)
@@ -52,6 +73,7 @@ const modelFormArea = document.getElementById('modelFormArea');
 const proxyUrlFormArea = document.getElementById('proxyUrlFormArea');
 const apiKeyFormArea = document.getElementById('apiKeyFormArea');
 const presetFormArea = document.getElementById('presetFormArea');
+const themeFormArea = document.getElementById('themeFormArea');
 
 
 // Forms themselves
@@ -60,6 +82,7 @@ const modelForm = document.getElementById('modelForm');
 const proxyUrlForm = document.getElementById('proxyUrlForm');
 const apiKeyForm = document.getElementById('apiKeyForm');
 const presetForm = document.getElementById('presetForm');
+const themeForm = document.getElementById('themeForm');
 
 
 // Form Inputs
@@ -70,10 +93,28 @@ const proxyUrlValueInput = document.getElementById('proxyUrlValueInput');
 const apiKeyNameInput = document.getElementById('apiKeyNameInput');
 const apiKeyValueInput = document.getElementById('apiKeyValueInput');
 const presetNameInput = document.getElementById('presetNameInput');
-const presetPromptInput = document.getElementById('presetPromptInput');
-const presetModelInput = document.getElementById('presetModelInput');
-const presetProxyInput = document.getElementById('presetProxyInput');
-const presetApiKeyInput = document.getElementById('presetApiKeyInput');
+// Changed to select elements
+const presetPromptSelect = document.getElementById('presetPromptSelect');
+const presetModelSelect = document.getElementById('presetModelSelect');
+const presetProxySelect = document.getElementById('presetProxySelect');
+const presetApiKeySelect = document.getElementById('presetApiKeySelect');
+// Theme form inputs
+const themeTemplateInput = document.getElementById('themeTemplateInput');
+const themeNameInput = document.getElementById('themeNameInput');
+const themePrimaryBgInput = document.getElementById('themePrimaryBgInput');
+const themeSecondaryBgInput = document.getElementById('themeSecondaryBgInput');
+const themeListItemBgInput = document.getElementById('themeListItemBgInput');
+const themeListItemHoverBgInput = document.getElementById('themeListItemHoverBgInput');
+const themeTextDefaultInput = document.getElementById('themeTextDefaultInput');
+const themeTextHeadingInput = document.getElementById('themeTextHeadingInput');
+const themeTextInfoInput = document.getElementById('themeTextInfoInput');
+const themeBorderPrimaryInput = document.getElementById('themeBorderPrimaryInput');
+
+// Import/Export Buttons and Input (NEW)
+const exportDataButton = document.getElementById('exportDataButton');
+const importDataButton = document.getElementById('importDataButton');
+const importFileInput = document.getElementById('importFileInput');
+
 
 // Form Submit Buttons (for text change)
 const savePromptButton = promptForm.querySelector('button[type="submit"]');
@@ -81,6 +122,7 @@ const saveModelButton = modelForm.querySelector('button[type="submit"]');
 const saveProxyUrlButton = proxyUrlForm.querySelector('button[type="submit"]');
 const saveApiKeyButton = apiKeyForm.querySelector('button[type="submit"]');
 const savePresetButton = presetForm.querySelector('button[type="submit"]');
+const saveThemeButton = themeForm.querySelector('button[type="submit"]');
 
 
 // Cancel buttons
@@ -89,18 +131,16 @@ const cancelModelButton = document.getElementById('cancelModelButton');
 const cancelProxyUrlButton = document.getElementById('cancelProxyUrlButton');
 const cancelApiKeyButton = document.getElementById('cancelApiKeyButton');
 const cancelPresetButton = document.getElementById('cancelPresetButton');
+const cancelThemeButton = document.getElementById('cancelThemeButton');
 
 
 // Custom Message Box Elements
 const customMessageBox = document.getElementById('customMessageBox');
 const messageBoxText = document.getElementById('messageBoxText');
 const messageBoxOkButton = document.getElementById('messageBoxOkButton');
-// New: Cancel button for the custom message box
 const messageBoxCancelButton = document.createElement('button');
 messageBoxCancelButton.textContent = 'Cancel';
-// Apply the fancy-button class to the dynamically created cancel button
-messageBoxCancelButton.classList.add('fancy-button'); // Added fancy-button class
-// Override background for visual distinction as a cancel button
+messageBoxCancelButton.classList.add('fancy-button');
 messageBoxCancelButton.style.backgroundImage = 'linear-gradient(160deg, rgb(23, 5, 10), rgb(59, 11, 26), rgb(87, 22, 45), rgb(59, 11, 26), rgb(23, 5, 10))';
 messageBoxCancelButton.style.borderColor = 'rgb(87, 22, 45)';
 messageBoxCancelButton.style.color = 'rgb(255, 103, 142)';
@@ -108,27 +148,25 @@ messageBoxCancelButton.style.textShadow = 'rgba(255, 103, 142, 0.8) 0px 0px 10px
 messageBoxCancelButton.style.boxShadow = 'rgba(0, 0, 0, 0.16) 0px 3px 6px 0px, rgba(0, 0, 0, 0.23) 0px 3px 6px 0px, rgba(38, 7, 17, 0.7) 0px -2px 5px 1px inset, rgba(255, 103, 142, 0.4) 0px -1px 1px 3px inset';
 
 messageBoxCancelButton.style.marginLeft = '10px';
-messageBoxCancelButton.addEventListener('click', hideCustomMessageBox); // Hide on cancel
-// Append to the messageBoxButtons div, not directly to customMessageBox
+messageBoxCancelButton.addEventListener('click', hideCustomMessageBox);
 document.getElementById('messageBoxButtons').appendChild(messageBoxCancelButton);
 
 
 // --- Global State for Editing ---
 let editingItemId = null;
-let editingItemType = null; // 'prompt', 'model', 'proxy', 'apiKey', 'preset'
+let editingItemType = null;
 
 // --- Global State for Drag and Drop ---
-let draggedItem = null; // Stores the DOM element being dragged
-let draggedItemData = null; // Stores the actual data object/string of the dragged item
-let draggedItemStorageKey = null; // Stores the storage key ('savedPrompts', etc.)
-let draggedItemIdField = null; // Stores the ID field name ('id' or null)
+let draggedItem = null;
+let draggedItemData = null;
+let draggedItemStorageKey = null;
+let draggedItemIdField = null;
 
 // --- Global State for Auto-Scrolling ---
 let autoScrollInterval = null;
-// Define the percentage of the list height from the top/bottom that triggers scrolling
-const AUTO_SCROLL_EDGE_ZONE_PERCENTAGE = 0.25; // 25% from top, 25% from bottom = 50% total scroll zones
-const SCROLL_SPEED_MAX = 10; // pixels per interval (max speed)
-let currentScrollList = null; // To keep track of which list is scrolling
+const AUTO_SCROLL_EDGE_ZONE_PERCENTAGE = 0.25;
+const SCROLL_SPEED_MAX = 10;
+let currentScrollList = null;
 
 
 // --- Helper Functions ---
@@ -141,7 +179,7 @@ let currentScrollList = null; // To keep track of which list is scrolling
  */
 function showCustomMessageBox(message, onConfirm = null, showCancel = false) {
     messageBoxText.textContent = message;
-    customMessageBox.style.display = 'flex'; // Set to flex when showing to center content
+    customMessageBox.style.display = 'flex';
 
     // Clear previous event listeners
     messageBoxOkButton.onclick = null;
@@ -180,9 +218,10 @@ function generateUniqueId() {
 function hideAllForms() {
     promptFormArea.style.display = 'none';
     modelFormArea.style.display = 'none';
-    proxyUrlArea.style.display = 'none';
+    proxyUrlFormArea.style.display = 'none';
     apiKeyFormArea.style.display = 'none';
     presetFormArea.style.display = 'none';
+    themeFormArea.style.display = 'none';
 }
 
 /**
@@ -195,41 +234,92 @@ function hideAllActionButtons() {
 }
 
 /**
- * Shows all main list areas and add buttons.
+ * Shows all main list areas and add buttons based on the current view.
  * This function now also ensures the list divs and add buttons are visible.
  */
 function showAllListAreas() {
-     promptArea.style.display = 'block';
-     promptsListDiv.style.display = 'block';
-     addPromptButton.style.display = 'flex';
+    // Hide all list areas and add buttons first
+    [promptArea, modelArea, proxyUrlArea, apiKeyArea, presetsArea, defaultThemesArea, customThemesArea, importExportArea].forEach(area => {
+        area.style.display = 'none';
+    });
+    [promptsListDiv, modelsListDiv, proxyUrlsListDiv, apiKeysListDiv, presetsListDiv, defaultThemesListDiv, customThemesListDiv].forEach(list => {
+        list.style.display = 'none';
+    });
+    [addPromptButton, addModelButton, addProxyUrlButton, addApiKeyButton, addPresetButton, addCustomThemeButton].forEach(button => {
+        button.style.display = 'none';
+    });
 
-     modelArea.style.display = 'block';
-     modelsListDiv.style.display = 'block';
-     addModelButton.style.display = 'flex';
+    // Show elements based on active view
+    if (mainView.classList.contains('active')) {
+        promptArea.style.display = 'flex'; // Changed to 'flex'
+        promptsListDiv.style.display = 'block';
+        addPromptButton.style.display = 'flex';
 
-     proxyUrlArea.style.display = 'block';
-     proxyUrlsListDiv.style.display = 'block';
-     addProxyUrlButton.style.display = 'flex';
+        modelArea.style.display = 'flex'; // Changed to 'flex'
+        modelsListDiv.style.display = 'block';
+        addModelButton.style.display = 'flex';
 
-     apiKeyArea.style.display = 'block';
-     apiKeysListDiv.style.display = 'block';
-     addApiKeyButton.style.display = 'flex';
+        proxyUrlArea.style.display = 'flex'; // Changed to 'flex'
+        proxyUrlsListDiv.style.display = 'block';
+        addProxyUrlButton.style.display = 'flex';
 
-     presetsArea.style.display = 'block';
-     presetsListDiv.style.display = 'block';
-     addPresetButton.style.display = 'flex';
+        apiKeyArea.style.display = 'flex'; // Changed to 'flex'
+        apiKeysListDiv.style.display = 'block';
+        addApiKeyButton.style.display = 'flex';
 
-     // Reset editing state and button texts
-     editingItemId = null;
-     editingItemType = null;
-     savePromptButton.textContent = 'Save Prompt';
-     saveModelButton.textContent = 'Save Model';
-     saveProxyUrlButton.textContent = 'Save Proxy URL';
-     saveApiKeyButton.textContent = 'Save Key';
-     savePresetButton.textContent = 'Save Preset';
+        presetsArea.style.display = 'flex'; // Changed to 'flex'
+        presetsListDiv.style.display = 'block';
+        addPresetButton.style.display = 'flex';
+    } else if (settingsView.classList.contains('active')) {
+        defaultThemesArea.style.display = 'flex'; // Changed to 'flex'
+        defaultThemesListDiv.style.display = 'block';
+        // No add button for default themes
 
-     hideAllActionButtons(); // Ensure all action buttons are hidden when forms are closed
+        customThemesArea.style.display = 'flex'; // Changed to 'flex'
+        customThemesListDiv.style.display = 'block';
+        addCustomThemeButton.style.display = 'flex';
+
+        importExportArea.style.display = 'flex'; // NEW: Show import/export section
+    }
+
+    // Reset editing state and button texts
+    editingItemId = null;
+    editingItemType = null;
+    savePromptButton.textContent = 'Save Prompt';
+    saveModelButton.textContent = 'Save Model';
+    saveProxyUrlButton.textContent = 'Save Proxy URL';
+    saveApiKeyButton.textContent = 'Save Key';
+    savePresetButton.textContent = 'Save Preset';
+    saveThemeButton.textContent = 'Save Theme';
+
+    hideAllActionButtons(); // Ensure all action buttons are hidden when forms are closed
 }
+
+/**
+ * Switches the active view.
+ * @param {HTMLElement} viewToShow - The view element to make active.
+ */
+function showView(viewToShow) {
+    if (viewToShow === mainView) {
+        mainView.classList.add('active');
+        settingsView.classList.remove('active');
+        settingsButton.style.display = 'flex';
+        backButton.style.display = 'none';
+        mainHeading.textContent = 'Shoddy API Manager';
+    } else if (viewToShow === settingsView) {
+        settingsView.classList.add('active');
+        mainView.classList.remove('active');
+        settingsButton.style.display = 'none';
+        backButton.style.display = 'flex';
+        mainHeading.textContent = 'Settings';
+    }
+    // Always hide all forms when switching views
+    hideAllForms();
+    // Then show the relevant lists for the new active view
+    showAllListAreas();
+    reloadAllLists(); // Reload lists for the newly visible view
+}
+
 
 /**
  * Reloads all lists. Call this after any save/delete operation.
@@ -241,6 +331,8 @@ function reloadAllLists() {
     loadAndDisplayProxies();
     loadAndDisplayApiKeys();
     loadAndDisplayPresets();
+    loadAndDisplayDefaultThemes();
+    loadAndDisplayCustomThemes();
 }
 
 
@@ -296,13 +388,11 @@ function handleDragStart(event, itemData, storageKey, idField) {
     // Set a transparent drag image so the original element appears to stay in place
     event.dataTransfer.setDragImage(new Image(), 0, 0);
 
-    // Removed the class that makes the dragged item invisible
-    // event.target.classList.add('dragging-invisible');
-    document.body.classList.add('dragging-active'); // Add class to body for cursor
+    document.body.classList.add('dragging-active');
 }
 
 function handleDragOver(event) {
-    event.preventDefault(); // Crucial to allow dropping
+    event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
 
     const targetItem = event.target.closest('.data-list-item');
@@ -319,16 +409,14 @@ function handleDragOver(event) {
         const topScrollBoundary = listRect.top + autoScrollEdgeZonePx;
         const bottomScrollBoundary = listRect.bottom - autoScrollEdgeZonePx;
 
-        if (mouseY < topScrollBoundary) { // In top scroll zone
-            // Calculate factor: 1 at top edge, 0 at topScrollBoundary
+        if (mouseY < topScrollBoundary) {
             const scrollFactor = 1 - ((mouseY - listRect.top) / autoScrollEdgeZonePx);
-            startAutoScroll(currentList, -1, scrollFactor); // Scroll up
-        } else if (mouseY > bottomScrollBoundary) { // In bottom scroll zone
-            // Calculate factor: 1 at bottom edge, 0 at bottomScrollBoundary
+            startAutoScroll(currentList, -1, scrollFactor);
+        } else if (mouseY > bottomScrollBoundary) {
             const scrollFactor = 1 - ((listRect.bottom - mouseY) / autoScrollEdgeZonePx);
-            startAutoScroll(currentList, 1, scrollFactor); // Scroll down
+            startAutoScroll(currentList, 1, scrollFactor);
         } else {
-            stopAutoScroll(); // In the dead zone (center 50%)
+            stopAutoScroll();
         }
     }
 
@@ -351,7 +439,6 @@ function handleDragOver(event) {
 }
 
 function handleDragLeave(event) {
-    // Stop scrolling if the dragged item leaves the list container entirely
     const relatedTarget = event.relatedTarget;
     if (!relatedTarget || !relatedTarget.closest('.data-list')) {
         stopAutoScroll();
@@ -359,9 +446,8 @@ function handleDragLeave(event) {
 }
 
 async function handleDrop(event) {
-    event.preventDefault(); // Crucial to prevent default browser handling
+    event.preventDefault();
 
-    // Capture the global state variables as local constants immediately
     const currentDraggedItem = draggedItem;
     const currentDraggedItemData = draggedItemData;
     const currentDraggedItemStorageKey = draggedItemStorageKey;
@@ -369,11 +455,9 @@ async function handleDrop(event) {
 
     if (DEBUG_MODE) console.log('handleDrop triggered. currentDraggedItem:', currentDraggedItem, 'currentDraggedItemData:', JSON.parse(JSON.stringify(currentDraggedItemData)));
 
-    // Ensure draggedItem is valid and we are dropping within its original list
     if (!currentDraggedItem || currentDraggedItem.parentElement !== event.target.closest('.data-list')) {
         if (DEBUG_MODE) console.warn('Invalid drop target or currentDraggedItem is null. Stopping auto-scroll.');
         stopAutoScroll();
-        // Clear global drag state immediately if drop is invalid
         draggedItem = null;
         draggedItemData = null;
         draggedItemStorageKey = null;
@@ -381,27 +465,23 @@ async function handleDrop(event) {
         return;
     }
 
-    const itemsListDiv = currentDraggedItem.parentElement; // The parent list div
+    const itemsListDiv = currentDraggedItem.parentElement;
     const storageKey = currentDraggedItemStorageKey;
     const idField = currentDraggedItemIdField;
 
-    // Get current items from storage
     chrome.storage.local.get({ [storageKey]: [] }, async (data) => {
         let items = data[storageKey];
-        if (DEBUG_MODE) console.log(`[${storageKey}] Before reorder (from storage):`, JSON.parse(JSON.stringify(items))); // Log before reorder
+        if (DEBUG_MODE) console.log(`[${storageKey}] Before reorder (from storage):`, JSON.parse(JSON.stringify(items)));
 
         let oldIndex;
         if (idField) {
-            // For objects with an ID field (Prompts, API Keys, Presets)
             oldIndex = items.findIndex(item => item[idField] === currentDraggedItemData[idField]);
         } else {
-            // For simple string arrays (Models, Proxies)
             oldIndex = items.indexOf(currentDraggedItemData);
         }
 
         if (oldIndex === -1) {
             if (DEBUG_MODE) console.error(`Dragged item not found in storage array during drop for ${storageKey}. currentDraggedItemData:`, currentDraggedItemData, 'Current items:', items);
-            // Clear global drag state if item not found, as something went wrong
             draggedItem = null;
             draggedItemData = null;
             draggedItemStorageKey = null;
@@ -410,41 +490,32 @@ async function handleDrop(event) {
             return;
         }
 
-        const [removed] = items.splice(oldIndex, 1); // Remove the item from its old position in data array
+        const [removed] = items.splice(oldIndex, 1);
 
-        // Determine the new index based on the DOM's current order
         const newIndex = Array.from(itemsListDiv.children).indexOf(currentDraggedItem);
 
-        // Insert the removed item at the new index in the data array
         items.splice(newIndex, 0, removed);
 
-        if (DEBUG_MODE) console.log(`[${storageKey}] After reorder (before save):`, JSON.parse(JSON.stringify(items))); // Log after reorder
+        if (DEBUG_MODE) console.log(`[${storageKey}] After reorder (before save):`, JSON.parse(JSON.stringify(items)));
 
-        // Save the reordered array back to storage
         chrome.storage.local.set({ [storageKey]: items }, () => {
-            if (DEBUG_MODE) console.log(`[${storageKey}] Saved to storage.`); // Confirm save
-            reloadAllLists(); // Reload all lists to reflect the new order from storage
-            // refreshContentScriptData(); // Notify content script of potential data change (e.g., preset order)
-            // Note: refreshContentScriptData is commented out as it's not provided in this context.
-
-            // Clear global drag state ONLY after successful save and reload
+            if (DEBUG_MODE) console.log(`[${storageKey}] Saved to storage.`);
+            reloadAllLists();
             draggedItem = null;
             draggedItemData = null;
             draggedItemStorageKey = null;
             draggedItemIdField = null;
         });
     });
-    stopAutoScroll(); // Stop scrolling after drop (this can be moved inside the callback too for more strictness)
+    stopAutoScroll();
 }
 
 function handleDragEnd(event) {
-    // Clean up: remove dragging class and reset global state
     if (draggedItem) {
         draggedItem.classList.remove('dragging-invisible');
     }
-    document.body.classList.remove('dragging-active'); // Remove cursor class from body
-    stopAutoScroll(); // Ensure auto-scrolling stops
-    // Do NOT clear draggedItem, draggedItemData here. handleDrop's callback will do it.
+    document.body.classList.remove('dragging-active');
+    stopAutoScroll();
 }
 
 
@@ -453,8 +524,8 @@ function handleDragEnd(event) {
 function loadAndDisplayPrompts() {
     chrome.storage.local.get({ savedPrompts: [] }, (data) => {
         const prompts = data.savedPrompts;
-        promptsListDiv.innerHTML = ''; // Clear list
-        if (DEBUG_MODE) console.log('[savedPrompts] Loaded:', JSON.parse(JSON.stringify(prompts))); // Log loaded data
+        promptsListDiv.innerHTML = '';
+        if (DEBUG_MODE) console.log('[savedPrompts] Loaded:', JSON.parse(JSON.stringify(prompts)));
 
         if (prompts.length === 0) {
             promptsListDiv.appendChild(noPromptsMessage);
@@ -465,28 +536,25 @@ function loadAndDisplayPrompts() {
                 const item = document.createElement('div');
                 item.className = 'data-list-item';
                 item.dataset.id = prompt.id;
-                item.draggable = true; // Make item draggable
+                item.draggable = true;
 
-                // Add drag and drop event listeners
                 item.addEventListener('dragstart', (e) => handleDragStart(e, prompt, 'savedPrompts', 'id'));
-                // item.addEventListener('dragover', handleDragOver); // Moved to parent list
-                item.addEventListener('dragend', handleDragEnd); // dragend should be on the item
+                item.addEventListener('dragend', handleDragEnd);
 
-                // Click listener for showing/hiding action buttons
                 item.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent click from bubbling up to document.body
+                    e.stopPropagation();
                     const actionButtons = item.querySelector('.action-buttons');
                     if (actionButtons) {
                         if (actionButtons.classList.contains('hidden')) {
-                            hideAllActionButtons(); // Hide all others first
-                            actionButtons.classList.remove('hidden'); // Show this one
+                            hideAllActionButtons();
+                            actionButtons.classList.remove('hidden');
                         } else {
-                            actionButtons.classList.add('hidden'); // Hide this one
+                            actionButtons.classList.add('hidden');
                         }
                     }
                 });
 
-                promptsListDiv.appendChild(item); // Append first, then add content
+                promptsListDiv.appendChild(item);
 
                 const itemHeader = document.createElement('div');
                 itemHeader.className = 'item-header';
@@ -497,34 +565,31 @@ function loadAndDisplayPrompts() {
                 nameSpan.textContent = prompt.name;
                 itemHeader.appendChild(nameSpan);
 
-                // --- Action Buttons (Edit/Delete) ---
                 const actionButtonsContainer = document.createElement('div');
-                actionButtonsContainer.className = 'action-buttons hidden'; // Start hidden
+                actionButtonsContainer.className = 'action-buttons hidden';
                 
                 const editButton = document.createElement('button');
-                editButton.textContent = 'Edit';
-                editButton.className = 'edit-button'; // Add a class for styling
+                editButton.innerHTML = '<i class="fas fa-pencil-alt"></i>';
+                editButton.className = 'edit-button icon-button';
                 editButton.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent item click listener from firing
+                    e.stopPropagation();
                     showEditPromptForm(prompt);
                 });
                 actionButtonsContainer.appendChild(editButton);
 
                 const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.className = 'delete-button'; // Add a class for styling
+                deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                deleteButton.className = 'delete-button icon-button';
                 deleteButton.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent item click listener from firing
+                    e.stopPropagation();
                     showCustomMessageBox(`Are you sure you want to delete "${prompt.name}"?`, () => handleDeletePrompt(prompt.id), true);
                 });
                 actionButtonsContainer.appendChild(deleteButton);
 
-                itemHeader.appendChild(actionButtonsContainer); // Append to itemHeader
-                // --- End Action Buttons ---
+                itemHeader.appendChild(actionButtonsContainer);
 
                 const valueSpan = document.createElement('span');
                 valueSpan.className = 'item-value';
-                // Truncate long prompts for display
                 valueSpan.textContent = `${prompt.value.substring(0, 50)}${prompt.value.length > 50 ? '...' : ''}`;
                 item.appendChild(valueSpan);
             });
@@ -533,34 +598,32 @@ function loadAndDisplayPrompts() {
 }
 
 function showAddPromptForm() {
-    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
+    showAllListAreas();
     promptForm.reset();
-    hideAllForms(); // Hide any other open forms
-    // Only show the specific section for the form
-    promptArea.style.display = 'block';
-    promptsListDiv.style.display = 'none'; // Hide the list
-    addPromptButton.style.display = 'flex'; // Ensure add button is visible for this section
-    promptFormArea.style.display = 'block'; // Show THIS form
-    savePromptButton.textContent = 'Save Prompt'; // Ensure button text is "Save"
-    editingItemId = null; // Clear editing state
+    hideAllForms();
+    promptArea.style.display = 'flex'; // Changed to 'flex'
+    promptsListDiv.style.display = 'none';
+    addPromptButton.style.display = 'flex';
+    promptFormArea.style.display = 'block';
+    savePromptButton.textContent = 'Save Prompt';
+    editingItemId = null;
     editingItemType = null;
 }
 
 function showEditPromptForm(promptData) {
-    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
+    showAllListAreas();
     promptForm.reset();
     hideAllForms();
-    promptArea.style.display = 'block';
+    promptArea.style.display = 'flex'; // Changed to 'flex'
     promptsListDiv.style.display = 'none';
-    addPromptButton.style.display = 'flex'; // Ensure add button is visible for this section
+    addPromptButton.style.display = 'flex';
     promptFormArea.style.display = 'block';
 
-    // Pre-fill form with existing data
     promptNameInput.value = promptData.name;
     promptValueInput.value = promptData.value;
 
-    savePromptButton.textContent = 'Update Prompt'; // Change button text
-    editingItemId = promptData.id; // Set editing state
+    savePromptButton.textContent = 'Update Prompt';
+    editingItemId = promptData.id;
     editingItemType = 'prompt';
 }
 
@@ -579,30 +642,25 @@ function handleSavePrompt(event) {
         let prompts = data.savedPrompts;
 
         if (editingItemId && editingItemType === 'prompt') {
-            // Update existing prompt
             const index = prompts.findIndex(p => p.id === editingItemId);
             if (index !== -1) {
                 prompts[index] = { id: editingItemId, name: name, value: value };
-                // showCustomMessageBox(`Prompt "${name}" updated!`); // Removed success message
             } else {
                 showCustomMessageBox('Error: Prompt not found for update.');
             }
         } else {
-            // Add new prompt
             const newItem = {
                 id: generateUniqueId(),
                 name: name,
                 value: value
             };
             prompts.push(newItem);
-            // showCustomMessageBox(`Prompt "${name}" saved!`); // Removed success message
         }
 
         chrome.storage.local.set({ savedPrompts: prompts }, () => {
-            // if (DEBUG_MODE) console.log('Prompts updated:', prompts); // Removed console.log
             promptFormArea.style.display = 'none';
-            showAllListAreas(); // Show all list containers and add buttons
-            reloadAllLists(); // Reload all lists
+            showAllListAreas();
+            reloadAllLists();
         });
     });
 }
@@ -615,7 +673,6 @@ function handleDeletePrompt(idToDelete) {
 
         if (prompts.length < initialLength) {
             chrome.storage.local.set({ savedPrompts: prompts }, () => {
-                // if (DEBUG_MODE) console.log('Prompt deleted:', idToDelete); // Removed console.log
                 showCustomMessageBox('Prompt deleted successfully!');
                 reloadAllLists();
             });
@@ -627,115 +684,108 @@ function handleDeletePrompt(idToDelete) {
 
 function handleCancelPromptForm() {
     promptFormArea.style.display = 'none';
-    showAllListAreas(); // Show all list containers and add buttons
-    reloadAllLists(); // Reload all lists
+    showAllListAreas();
+    reloadAllLists();
 }
 
 // --- Functions for Models ---
 
 function loadAndDisplayModels() {
      chrome.storage.local.get({ savedModels: [] }, (data) => {
-        const models = data.savedModels; // Array of strings
-        modelsListDiv.innerHTML = ''; // Clear list
-        if (DEBUG_MODE) console.log('[savedModels] Loaded:', JSON.parse(JSON.stringify(models))); // Log loaded data
+        const models = data.savedModels;
+        modelsListDiv.innerHTML = '';
+        if (DEBUG_MODE) console.log('[savedModels] Loaded:', JSON.parse(JSON.stringify(models)));
 
         if (models.length === 0) {
             modelsListDiv.appendChild(noModelsMessage);
             noModelsMessage.style.display = 'block';
         } else {
             noModelsMessage.style.display = 'none';
-            models.forEach(model => { // model is a string
+            models.forEach(model => {
                 const item = document.createElement('div');
                 item.className = 'data-list-item';
                 item.dataset.value = model;
-                item.draggable = true; // Make item draggable
+                item.draggable = true;
 
-                // Add drag and drop event listeners
-                item.addEventListener('dragstart', (e) => handleDragStart(e, model, 'savedModels', null)); // No idField for models
-                // item.addEventListener('dragover', handleDragOver); // Moved to parent list
-                item.addEventListener('dragend', handleDragEnd); // dragend should be on the item
+                item.addEventListener('dragstart', (e) => handleDragStart(e, model, 'savedModels', null));
+                item.addEventListener('dragend', handleDragEnd);
 
-                // Click listener for showing/hiding action buttons
                 item.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent click from bubbling up to document.body
+                    e.stopPropagation();
                     const actionButtons = item.querySelector('.action-buttons');
                     if (actionButtons) {
                         if (actionButtons.classList.contains('hidden')) {
-                            hideAllActionButtons(); // Hide all others first
-                            actionButtons.classList.remove('hidden'); // Show this one
+                            hideAllActionButtons();
+                            actionButtons.classList.remove('hidden');
                         } else {
-                            actionButtons.classList.add('hidden'); // Hide this one
+                            actionButtons.classList.add('hidden');
                         }
                     }
                 });
 
-                modelsListDiv.appendChild(item); // Append first, then add content
+                modelsListDiv.appendChild(item);
 
                 const itemHeader = document.createElement('div');
                 itemHeader.className = 'item-header';
                 item.appendChild(itemHeader);
 
                 const valueSpan = document.createElement('span');
-                // Truncate model text for display
                 valueSpan.textContent = `${model.substring(0, 20)}${model.length > 20 ? '...' : ''}`;
                 itemHeader.appendChild(valueSpan);
 
-                // --- Action Buttons (Edit/Delete) ---
                 const actionButtonsContainer = document.createElement('div');
-                actionButtonsContainer.className = 'action-buttons hidden'; // Start hidden
+                actionButtonsContainer.className = 'action-buttons hidden';
 
                 const editButton = document.createElement('button');
-                editButton.textContent = 'Edit';
-                editButton.className = 'edit-button'; // Add a class for styling
+                editButton.innerHTML = '<i class="fas fa-pencil-alt"></i>';
+                editButton.className = 'edit-button icon-button';
                 editButton.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    showEditModelForm(model); // Pass the model string
+                    showEditModelForm(model);
                 });
                 actionButtonsContainer.appendChild(editButton);
 
                 const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.className = 'delete-button'; // Add a class for styling
+                deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                deleteButton.className = 'delete-button icon-button';
                 deleteButton.addEventListener('click', (e) => {
                     e.stopPropagation();
                     showCustomMessageBox(`Are you sure you want to delete "${model}"?`, () => handleDeleteModel(model), true);
                 });
                 actionButtonsContainer.appendChild(deleteButton);
 
-                itemHeader.appendChild(actionButtonsContainer); // Append to itemHeader
-                // --- End Action Buttons ---
+                itemHeader.appendChild(actionButtonsContainer);
             });
         }
      });
 }
 
 function showAddModelForm() {
-    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
+    showAllListAreas();
     modelForm.reset();
-    hideAllForms(); // Hide any other open forms
-    modelArea.style.display = 'block'; // Keep this section container visible
-    modelsListDiv.style.display = 'none'; // Hide the list
-    addModelButton.style.display = 'flex'; // Ensure add button is visible for this section
-    modelFormArea.style.display = 'block'; // Show THIS form
-    saveModelButton.textContent = 'Save Model'; // Ensure button text is "Save"
-    editingItemId = null; // Clear editing state
+    hideAllForms();
+    modelArea.style.display = 'flex'; // Changed to 'flex'
+    modelsListDiv.style.display = 'none';
+    addModelButton.style.display = 'flex';
+    modelFormArea.style.display = 'block';
+    saveModelButton.textContent = 'Save Model';
+    editingItemId = null;
     editingItemType = null;
 }
 
 function showEditModelForm(modelValue) {
-    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
+    showAllListAreas();
     modelForm.reset();
     hideAllForms();
-    modelArea.style.display = 'block';
+    modelArea.style.display = 'flex'; // Changed to 'flex'
     modelsListDiv.style.display = 'none';
-    addModelButton.style.display = 'flex'; // Ensure add button is visible for this section
+    addModelButton.style.display = 'flex';
     modelFormArea.style.display = 'block';
 
-    // Pre-fill form with existing data
     modelValueInput.value = modelValue;
 
-    saveModelButton.textContent = 'Update Model'; // Change button text
-    editingItemId = modelValue; // Use value as ID for models/proxies
+    saveModelButton.textContent = 'Update Model';
+    editingItemId = modelValue;
     editingItemType = 'model';
 }
 
@@ -752,30 +802,25 @@ function handleSaveModel(event) {
         let models = data.savedModels;
 
         if (editingItemId && editingItemType === 'model') {
-            // Update existing model
-            const index = models.indexOf(editingItemId); // Find by value
+            const index = models.indexOf(editingItemId);
             if (index !== -1) {
-                if (models.includes(value) && models[index] !== value) { // Check if new value already exists, but allow current item to keep its value
+                if (models.includes(value) && models[index] !== value) {
                     showCustomMessageBox('Model already exists!');
                     return;
                 }
-                models[index] = value; // Update the value
-                // showCustomMessageBox(`Model "${value}" updated!`); // Removed success message
+                models[index] = value;
             } else {
                 showCustomMessageBox('Error: Model not found for update.');
             }
         } else {
-            // Add new model
             if (models.includes(value)) {
                 showCustomMessageBox('Model already exists!');
                 return;
             }
             models.push(value);
-            // showCustomMessageBox(`Model "${value}" saved!`); // Removed success message
         }
 
         chrome.storage.local.set({ savedModels: models }, () => {
-            // if (DEBUG_MODE) console.log('Models updated:', models); // Removed console.log
             modelFormArea.style.display = 'none';
             showAllListAreas();
             reloadAllLists();
@@ -791,7 +836,6 @@ function handleDeleteModel(valueToDelete) {
 
         if (models.length < initialLength) {
             chrome.storage.local.set({ savedModels: models }, () => {
-                // if (DEBUG_MODE) console.log('Model deleted:', valueToDelete); // Removed console.log
                 showCustomMessageBox('Model deleted successfully!');
                 reloadAllLists();
             });
@@ -811,58 +855,53 @@ function handleCancelModelForm() {
 
 function loadAndDisplayProxies() {
     chrome.storage.local.get({ savedProxies: [] }, (data) => {
-        const proxies = data.savedProxies; // Array of strings
-        proxyUrlsListDiv.innerHTML = ''; // Clear list
-        if (DEBUG_MODE) console.log('[savedProxies] Loaded:', JSON.parse(JSON.stringify(proxies))); // Log loaded data
+        const proxies = data.savedProxies;
+        proxyUrlsListDiv.innerHTML = '';
+        if (DEBUG_MODE) console.log('[savedProxies] Loaded:', JSON.parse(JSON.stringify(proxies)));
 
         if (proxies.length === 0) {
             proxyUrlsListDiv.appendChild(noProxyUrlsMessage);
             noProxyUrlsMessage.style.display = 'block';
         } else {
             noProxyUrlsMessage.style.display = 'none';
-            proxies.forEach(proxy => { // proxy is a string
+            proxies.forEach(proxy => {
                 const item = document.createElement('div');
                 item.className = 'data-list-item';
                 item.dataset.value = proxy;
-                item.draggable = true; // Make item draggable
+                item.draggable = true;
 
-                // Add drag and drop event listeners
-                item.addEventListener('dragstart', (e) => handleDragStart(e, proxy, 'savedProxies', null)); // No idField for proxies
-                // item.addEventListener('dragover', handleDragOver); // Moved to parent list
-                item.addEventListener('dragend', handleDragEnd); // dragend should be on the item
+                item.addEventListener('dragstart', (e) => handleDragStart(e, proxy, 'savedProxies', null));
+                item.addEventListener('dragend', handleDragEnd);
 
-                // Click listener for showing/hiding action buttons
                 item.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent click from bubbling up to document.body
+                    e.stopPropagation();
                     const actionButtons = item.querySelector('.action-buttons');
                     if (actionButtons) {
                         if (actionButtons.classList.contains('hidden')) {
-                            hideAllActionButtons(); // Hide all others first
-                            actionButtons.classList.remove('hidden'); // Show this one
+                            hideAllActionButtons();
+                            actionButtons.classList.remove('hidden');
                         } else {
-                            actionButtons.classList.add('hidden'); // Hide this one
+                            actionButtons.classList.add('hidden');
                         }
                     }
                 });
 
-                proxyUrlsListDiv.appendChild(item); // Append first, then add content
+                proxyUrlsListDiv.appendChild(item);
 
                 const itemHeader = document.createElement('div');
                 itemHeader.className = 'item-header';
                 item.appendChild(itemHeader);
 
                 const valueSpan = document.createElement('span');
-                // Truncate proxy text for display
                 valueSpan.textContent = `${proxy.substring(0, 20)}${proxy.length > 20 ? '...' : ''}`;
                 itemHeader.appendChild(valueSpan);
 
-                // --- Action Buttons (Edit/Delete) ---
                 const actionButtonsContainer = document.createElement('div');
-                actionButtonsContainer.className = 'action-buttons hidden'; // Start hidden
+                actionButtonsContainer.className = 'action-buttons hidden';
 
                 const editButton = document.createElement('button');
-                editButton.textContent = 'Edit';
-                editButton.className = 'edit-button'; // Add a class for styling
+                editButton.innerHTML = '<i class="fas fa-pencil-alt"></i>';
+                editButton.className = 'edit-button icon-button';
                 editButton.addEventListener('click', (e) => {
                     e.stopPropagation();
                     showEditProxyUrlForm(proxy);
@@ -870,48 +909,46 @@ function loadAndDisplayProxies() {
                 actionButtonsContainer.appendChild(editButton);
 
                 const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.className = 'delete-button'; // Add a class for styling
+                deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                deleteButton.className = 'delete-button icon-button';
                 deleteButton.addEventListener('click', (e) => {
                     e.stopPropagation();
                     showCustomMessageBox(`Are you sure you want to delete "${proxy}"?`, () => handleDeleteProxyUrl(proxy), true);
                 });
                 actionButtonsContainer.appendChild(deleteButton);
 
-                itemHeader.appendChild(actionButtonsContainer); // Append to itemHeader
-                // --- End Action Buttons ---
+                itemHeader.appendChild(actionButtonsContainer);
             });
         }
      });
 }
 
 function showAddProxyUrlForm() {
-    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
+    showAllListAreas();
     proxyUrlForm.reset();
-    hideAllForms(); // Hide any other open forms
-    proxyUrlArea.style.display = 'block'; // Keep this section container visible
-    proxyUrlsListDiv.style.display = 'none'; // Hide the list
-    addProxyUrlButton.style.display = 'flex'; // Ensure add button is visible for this section
-    proxyUrlFormArea.style.display = 'block'; // Show THIS form
-    saveProxyUrlButton.textContent = 'Save Proxy URL'; // Ensure button text is "Save"
-    editingItemId = null; // Clear editing state
+    hideAllForms();
+    proxyUrlArea.style.display = 'flex'; // Changed to 'flex'
+    proxyUrlsListDiv.style.display = 'none';
+    addProxyUrlButton.style.display = 'flex';
+    proxyUrlFormArea.style.display = 'block';
+    saveProxyUrlButton.textContent = 'Save Proxy URL';
+    editingItemId = null;
     editingItemType = null;
 }
 
 function showEditProxyUrlForm(proxyValue) {
-    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
+    showAllListAreas();
     proxyUrlForm.reset();
     hideAllForms();
-    proxyUrlArea.style.display = 'block';
+    proxyUrlArea.style.display = 'flex'; // Changed to 'flex'
     proxyUrlsListDiv.style.display = 'none';
-    addProxyUrlButton.style.display = 'flex'; // Ensure add button is visible for this section
+    addProxyUrlButton.style.display = 'flex';
     proxyUrlFormArea.style.display = 'block';
 
-    // Pre-fill form with existing data
     proxyUrlValueInput.value = proxyValue;
 
-    saveProxyUrlButton.textContent = 'Update Proxy URL'; // Change button text
-    editingItemId = proxyValue; // Use value as ID for models/proxies
+    saveProxyUrlButton.textContent = 'Update Proxy URL';
+    editingItemId = proxyValue;
     editingItemType = 'proxy';
 }
 
@@ -928,7 +965,6 @@ function handleSaveProxyUrl(event) {
         let proxies = data.savedProxies;
 
         if (editingItemId && editingItemType === 'proxy') {
-            // Update existing proxy
             const index = proxies.indexOf(editingItemId);
             if (index !== -1) {
                 if (proxies.includes(value) && proxies[index] !== value) {
@@ -936,22 +972,18 @@ function handleSaveProxyUrl(event) {
                     return;
                 }
                 proxies[index] = value;
-                // showCustomMessageBox(`Proxy URL "${value}" updated!`); // Removed success message
             } else {
                 showCustomMessageBox('Error: Proxy URL not found for update.');
             }
         } else {
-            // Add new proxy
             if (proxies.includes(value)) {
                 showCustomMessageBox('Proxy URL already exists!');
                 return;
             }
             proxies.push(value);
-            // showCustomMessageBox(`Proxy URL "${value}" saved!`); // Removed success message
         }
 
         chrome.storage.local.set({ savedProxies: proxies }, () => {
-            // if (DEBUG_MODE) console.log('Proxies updated:', proxies); // Removed console.log
             proxyUrlFormArea.style.display = 'none';
             showAllListAreas();
             reloadAllLists();
@@ -967,7 +999,6 @@ function handleDeleteProxyUrl(valueToDelete) {
 
         if (proxies.length < initialLength) {
             chrome.storage.local.set({ savedProxies: proxies }, () => {
-                // if (DEBUG_MODE) console.log('Proxy URL deleted:', valueToDelete); // Removed console.log
                 showCustomMessageBox('Proxy URL deleted successfully!');
                 reloadAllLists();
             });
@@ -988,41 +1019,38 @@ function handleCancelProxyUrlForm() {
 
 function loadAndDisplayApiKeys() {
     chrome.storage.local.get({ savedApiKeys: [] }, (data) => {
-        const apiKeys = data.savedApiKeys; // Array of objects {id, name, value}
-        apiKeysListDiv.innerHTML = ''; // Clear list
-        if (DEBUG_MODE) console.log('[savedApiKeys] Loaded:', JSON.parse(JSON.stringify(apiKeys))); // Log loaded data
+        const apiKeys = data.savedApiKeys;
+        apiKeysListDiv.innerHTML = '';
+        if (DEBUG_MODE) console.log('[savedApiKeys] Loaded:', JSON.parse(JSON.stringify(apiKeys)));
 
         if (apiKeys.length === 0) {
             apiKeysListDiv.appendChild(noApiKeysMessage);
             noApiKeysMessage.style.display = 'block';
         } else {
             noApiKeysMessage.style.display = 'none';
-            apiKeys.forEach(key => { // key is an object {id, name, value}
+            apiKeys.forEach(key => {
                 const item = document.createElement('div');
                 item.className = 'data-list-item';
                 item.dataset.id = key.id;
-                item.draggable = true; // Make item draggable
+                item.draggable = true;
 
-                // Add drag and drop event listeners
                 item.addEventListener('dragstart', (e) => handleDragStart(e, key, 'savedApiKeys', 'id'));
-                // item.addEventListener('dragover', handleDragOver); // Moved to parent list
-                item.addEventListener('dragend', handleDragEnd); // dragend should be on the item
+                item.addEventListener('dragend', handleDragEnd);
 
-                // Click listener for showing/hiding action buttons
                 item.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent click from bubbling up to document.body
+                    e.stopPropagation();
                     const actionButtons = item.querySelector('.action-buttons');
                     if (actionButtons) {
                         if (actionButtons.classList.contains('hidden')) {
-                            hideAllActionButtons(); // Hide all others first
-                            actionButtons.classList.remove('hidden'); // Show this one
+                            hideAllActionButtons();
+                            actionButtons.classList.remove('hidden');
                         } else {
-                            actionButtons.classList.add('hidden'); // Hide this one
+                            actionButtons.classList.add('hidden');
                         }
                     }
                 });
 
-                apiKeysListDiv.appendChild(item); // Append first, then add content
+                apiKeysListDiv.appendChild(item);
 
                 const itemHeader = document.createElement('div');
                 itemHeader.className = 'item-header';
@@ -1033,13 +1061,12 @@ function loadAndDisplayApiKeys() {
                 nameSpan.textContent = key.name;
                 itemHeader.appendChild(nameSpan);
 
-                // --- Action Buttons (Edit/Delete) ---
                 const actionButtonsContainer = document.createElement('div');
-                actionButtonsContainer.className = 'action-buttons hidden'; // Start hidden
+                actionButtonsContainer.className = 'action-buttons hidden';
 
                 const editButton = document.createElement('button');
-                editButton.textContent = 'Edit';
-                editButton.className = 'edit-button'; // Add a class for styling
+                editButton.innerHTML = '<i class="fas fa-pencil-alt"></i>';
+                editButton.className = 'edit-button icon-button';
                 editButton.addEventListener('click', (e) => {
                     e.stopPropagation();
                     showEditApiKeyForm(key);
@@ -1047,16 +1074,15 @@ function loadAndDisplayApiKeys() {
                 actionButtonsContainer.appendChild(editButton);
 
                 const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.className = 'delete-button'; // Add a class for styling
+                deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                deleteButton.className = 'delete-button icon-button';
                 deleteButton.addEventListener('click', (e) => {
                     e.stopPropagation();
                     showCustomMessageBox(`Are you sure you want to delete "${key.name}"?`, () => handleDeleteApiKey(key.id), true);
                 });
                 actionButtonsContainer.appendChild(deleteButton);
 
-                itemHeader.appendChild(actionButtonsContainer); // Append to itemHeader
-                // --- End Action Buttons ---
+                itemHeader.appendChild(actionButtonsContainer);
 
                 const valueSpan = document.createElement('span');
                 valueSpan.className = 'item-value';
@@ -1068,33 +1094,32 @@ function loadAndDisplayApiKeys() {
 }
 
 function showAddApiKeyForm() {
-    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
+    showAllListAreas();
     apiKeyForm.reset();
-    hideAllForms(); // Hide any other open forms
-    apiKeyArea.style.display = 'block'; // Keep this section container visible
-    apiKeysListDiv.style.display = 'none'; // Hide the list
-    addApiKeyButton.style.display = 'flex'; // Ensure add button is visible for this section
-    apiKeyFormArea.style.display = 'block'; // Show THIS form
-    saveApiKeyButton.textContent = 'Save Key'; // Ensure button text is "Save"
-    editingItemId = null; // Clear editing state
+    hideAllForms();
+    apiKeyArea.style.display = 'flex'; // Changed to 'flex'
+    apiKeysListDiv.style.display = 'none';
+    addApiKeyButton.style.display = 'flex';
+    apiKeyFormArea.style.display = 'block';
+    saveApiKeyButton.textContent = 'Save Key';
+    editingItemId = null;
     editingItemType = null;
 }
 
 function showEditApiKeyForm(apiKeyData) {
-    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
+    showAllListAreas();
     apiKeyForm.reset();
     hideAllForms();
-    apiKeyArea.style.display = 'block';
+    apiKeyArea.style.display = 'flex'; // Changed to 'flex'
     apiKeysListDiv.style.display = 'none';
-    addApiKeyButton.style.display = 'flex'; // Ensure add button is visible for this section
+    addApiKeyButton.style.display = 'flex';
     apiKeyFormArea.style.display = 'block';
 
-    // Pre-fill form with existing data
     apiKeyNameInput.value = apiKeyData.name;
     apiKeyValueInput.value = apiKeyData.value;
 
-    saveApiKeyButton.textContent = 'Update Key'; // Change button text
-    editingItemId = apiKeyData.id; // Set editing state
+    saveApiKeyButton.textContent = 'Update Key';
+    editingItemId = apiKeyData.id;
     editingItemType = 'apiKey';
 }
 
@@ -1111,38 +1136,35 @@ function handleSaveApiKey(event) {
     chrome.storage.local.get({ savedApiKeys: [] }, (data) => {
         let apiKeys = data.savedApiKeys;
 
+        const existingWithName = apiKeys.find(k => k.name === name && k.id !== editingItemId);
+        if (existingWithName) {
+            showCustomMessageBox('An API Key with this name already exists!');
+            return;
+        }
+
+        const existingWithValue = apiKeys.find(k => k.value === value && k.id !== editingItemId);
+        if (existingWithValue) {
+            showCustomMessageBox(`This API Key value is already saved under the name "${existingWithValue.name}".`);
+            return;
+        }
+
         if (editingItemId && editingItemType === 'apiKey') {
-            // Update existing API Key
             const index = apiKeys.findIndex(k => k.id === editingItemId);
             if (index !== -1) {
-                // Check for duplicate name if changed to a new name that already exists
-                const existingWithName = apiKeys.find(k => k.name === name && k.id !== editingItemId);
-                if (existingWithName) {
-                    showCustomMessageBox('An API Key with this name already exists!');
-                    return;
-                }
                 apiKeys[index] = { id: editingItemId, name: name, value: value };
-                // showCustomMessageBox(`API Key "${name}" updated!`); // Removed success message
             } else {
                 showCustomMessageBox('Error: API Key not found for update.');
             }
         } else {
-            // Add new API Key
-            if (apiKeys.some(k => k.name === name)) {
-                showCustomMessageBox('An API Key with this name already exists!');
-                return;
-            }
             const newItem = {
                 id: generateUniqueId(),
                 name: name,
                 value: value
             };
             apiKeys.push(newItem);
-            // showCustomMessageBox(`API Key "${name}" saved!`); // Removed success message
         }
 
         chrome.storage.local.set({ savedApiKeys: apiKeys }, () => {
-            // if (DEBUG_MODE) console.log('API Keys updated:', apiKeys); // Removed console.log
             apiKeyFormArea.style.display = 'none';
             showAllListAreas();
             reloadAllLists();
@@ -1158,7 +1180,6 @@ function handleDeleteApiKey(idToDelete) {
 
         if (apiKeys.length < initialLength) {
             chrome.storage.local.set({ savedApiKeys: apiKeys }, () => {
-                // if (DEBUG_MODE) console.log('API Key deleted:', idToDelete); // Removed console.log
                 showCustomMessageBox('API Key deleted successfully!');
                 reloadAllLists();
             });
@@ -1180,8 +1201,8 @@ function handleCancelApiKeyForm() {
 function loadAndDisplayPresets() {
     chrome.storage.local.get({ savedPresets: [] }, (data) => {
         const presets = data.savedPresets;
-        presetsListDiv.innerHTML = ''; // Clear list
-        if (DEBUG_MODE) console.log('[savedPresets] Loaded:', JSON.parse(JSON.stringify(presets))); // Log loaded data
+        presetsListDiv.innerHTML = '';
+        if (DEBUG_MODE) console.log('[savedPresets] Loaded:', JSON.parse(JSON.stringify(presets)));
 
         if (presets.length === 0) {
             presetsListDiv.appendChild(noPresetsMessage);
@@ -1192,28 +1213,25 @@ function loadAndDisplayPresets() {
                 const item = document.createElement('div');
                 item.className = 'data-list-item';
                 item.dataset.id = preset.id;
-                item.draggable = true; // Make item draggable
+                item.draggable = true;
 
-                // Add drag and drop event listeners
                 item.addEventListener('dragstart', (e) => handleDragStart(e, preset, 'savedPresets', 'id'));
-                // item.addEventListener('dragover', handleDragOver); // Moved to parent list
-                item.addEventListener('dragend', handleDragEnd); // dragend should be on the item
+                item.addEventListener('dragend', handleDragEnd);
 
-                // Click listener for showing/hiding action buttons
                 item.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent click from bubbling up to document.body
+                    e.stopPropagation();
                     const actionButtons = item.querySelector('.action-buttons');
                     if (actionButtons) {
                         if (actionButtons.classList.contains('hidden')) {
-                            hideAllActionButtons(); // Hide all others first
-                            actionButtons.classList.remove('hidden'); // Show this one
+                            hideAllActionButtons();
+                            actionButtons.classList.remove('hidden');
                         } else {
-                            actionButtons.classList.add('hidden'); // Hide this one
+                            actionButtons.classList.add('hidden');
                         }
                     }
                 });
 
-                presetsListDiv.appendChild(item); // Append first, then add content
+                presetsListDiv.appendChild(item);
 
                 const itemHeader = document.createElement('div');
                 itemHeader.className = 'item-header';
@@ -1224,13 +1242,12 @@ function loadAndDisplayPresets() {
                 nameSpan.textContent = preset.name;
                 itemHeader.appendChild(nameSpan);
 
-                // --- Action Buttons (Edit/Delete) ---
                 const actionButtonsContainer = document.createElement('div');
-                actionButtonsContainer.className = 'action-buttons hidden'; // Start hidden
+                actionButtonsContainer.className = 'action-buttons hidden';
 
                 const editButton = document.createElement('button');
-                editButton.textContent = 'Edit';
-                editButton.className = 'edit-button'; // Add a class for styling
+                editButton.innerHTML = '<i class="fas fa-pencil-alt"></i>';
+                editButton.className = 'edit-button icon-button';
                 editButton.addEventListener('click', (e) => {
                     e.stopPropagation();
                     showEditPresetForm(preset);
@@ -1238,78 +1255,117 @@ function loadAndDisplayPresets() {
                 actionButtonsContainer.appendChild(editButton);
 
                 const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.className = 'delete-button'; // Add a class for styling
+                deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                deleteButton.className = 'delete-button icon-button';
                 deleteButton.addEventListener('click', (e) => {
                     e.stopPropagation();
                     showCustomMessageBox(`Are you sure you want to delete "${preset.name}"?`, () => handleDeletePreset(preset.id), true);
                 });
                 actionButtonsContainer.appendChild(deleteButton);
 
-                itemHeader.appendChild(actionButtonsContainer); // Append to itemHeader
-                // --- End Action Buttons ---
-
-                // Click listener for preset items (for INJECTING the bundle)
-                // This listener should remain on the item itself, not the action buttons
-                // This will now be handled by the generic item click listener, but the injection logic still needs to be here.
-                // The injection logic should probably be moved into a separate function called by the item click listener
-                // or triggered by a specific "use preset" button if we want to avoid accidental injections.
-                // For now, I'll keep the existing injection logic, but it will only fire if the item is clicked
-                // and the buttons are not toggled. This might need further refinement based on UX.
-                // Let's assume for now that clicking the item *always* means "show buttons AND inject" if no buttons are visible.
-                // If buttons are visible, clicking the item again hides them.
-                // A better UX would be a separate "Use" button or double-click to inject.
-                // For now, I will keep the injection logic separate from the button toggling.
-                // I'll add a check to ensure the injection only happens if the buttons were NOT just toggled.
+                itemHeader.appendChild(actionButtonsContainer);
 
                 const valueSpan = document.createElement('span');
                 valueSpan.className = 'item-value';
-                // Truncate long prompts for display
                 const summary = `M: ${preset.model ? preset.model.substring(0,10) + '...' : '-'}, P: ${preset.proxy ? preset.proxy.substring(0,10) + '...' : '-'}, A: ${preset.apiKey ? (preset.apiKey.name || preset.apiKey).substring(0,10) + '...' : '-'}`;
                 valueSpan.textContent = summary;
                 item.appendChild(valueSpan);
-
-                // Original injection logic (now triggered by the item click)
-                // This will run AFTER the button toggle, so it might not be ideal.
-                // A dedicated "Use" button or double-click would be better for UX.
-                // For now, I'm removing the direct injection on item click to avoid conflict with button toggling.
-                // If injection is desired directly on click, we need to differentiate click for buttons vs click for injection.
             });
         }
     });
 }
 
 function showAddPresetForm() {
-    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
-    presetForm.reset();
-    hideAllForms(); // Hide any other open forms
-    presetsArea.style.display = 'block'; // Keep this section container visible
-    presetsListDiv.style.display = 'none'; // Hide the list
-    addPresetButton.style.display = 'flex'; // Ensure add button is visible for this section
-    presetFormArea.style.display = 'block'; // Show THIS form
-    savePresetButton.textContent = 'Save Preset'; // Ensure button text is "Save"
-    editingItemId = null; // Clear editing state
-    editingItemType = null;
-}
-
-function showEditPresetForm(presetData) {
-    showAllListAreas(); // NEW: Call this first to ensure all lists are visible
+    showAllListAreas();
     presetForm.reset();
     hideAllForms();
-    presetsArea.style.display = 'block';
+    presetsArea.style.display = 'flex'; // Changed to 'flex'
     presetsListDiv.style.display = 'none';
-    addPresetButton.style.display = 'flex'; // Ensure add button is visible for this section
+    addPresetButton.style.display = 'flex';
+    presetFormArea.style.display = 'block';
+    savePresetButton.textContent = 'Save Preset';
+    editingItemId = null;
+    editingItemType = null;
+
+    // Populate dropdowns for preset creation
+    populatePresetDropdowns();
+}
+
+async function populatePresetDropdowns(presetData = null) {
+    const data = await new Promise(resolve => {
+        chrome.storage.local.get(['savedPrompts', 'savedModels', 'savedProxies', 'savedApiKeys'], resolve);
+    });
+
+    const prompts = data.savedPrompts || [];
+    const models = data.savedModels || [];
+    const proxies = data.savedProxies || [];
+    const apiKeys = data.savedApiKeys || [];
+
+    // Populate Prompts dropdown
+    presetPromptSelect.innerHTML = '<option value="">-- Select a Prompt --</option>';
+    prompts.forEach(p => {
+        const option = document.createElement('option');
+        option.value = p.value; // Store the actual prompt text
+        option.textContent = p.name; // Display the prompt's name
+        presetPromptSelect.appendChild(option);
+    });
+    if (presetData && presetData.prompt) {
+        presetPromptSelect.value = presetData.prompt;
+    }
+
+    // Populate Models dropdown
+    presetModelSelect.innerHTML = '<option value="">-- Select a Model --</option>';
+    models.forEach(m => {
+        const option = document.createElement('option');
+        option.value = m;
+        option.textContent = m;
+        presetModelSelect.appendChild(option);
+    });
+    if (presetData && presetData.model) {
+        presetModelSelect.value = presetData.model;
+    }
+
+    // Populate Proxies dropdown
+    presetProxySelect.innerHTML = '<option value="">-- Select a Proxy URL --</option>';
+    proxies.forEach(p => {
+        const option = document.createElement('option');
+        option.value = p;
+        option.textContent = p;
+        presetProxySelect.appendChild(option);
+    });
+    if (presetData && presetData.proxy) {
+        presetProxySelect.value = presetData.proxy;
+    }
+
+    // Populate API Keys dropdown
+    presetApiKeySelect.innerHTML = '<option value="">-- Select an API Key --</option>';
+    apiKeys.forEach(k => {
+        const option = document.createElement('option');
+        option.value = k.value; // Store the actual key value
+        option.textContent = k.name; // Display the key's name
+        presetApiKeySelect.appendChild(option);
+    });
+    if (presetData && presetData.apiKey) {
+        presetApiKeySelect.value = presetData.apiKey;
+    }
+}
+
+
+function showEditPresetForm(presetData) {
+    showAllListAreas();
+    presetForm.reset();
+    hideAllForms();
+    presetsArea.style.display = 'flex'; // Changed to 'flex'
+    presetsListDiv.style.display = 'none';
+    addPresetButton.style.display = 'flex';
     presetFormArea.style.display = 'block';
 
-    // Pre-fill form with existing data
     presetNameInput.value = presetData.name;
-    presetPromptInput.value = presetData.prompt;
-    presetModelInput.value = presetData.model;
-    presetProxyInput.value = presetData.proxy;
-    presetApiKeyInput.value = presetData.apiKey; // API Key is stored as string value
+    // Populate dropdowns with existing data
+    populatePresetDropdowns(presetData);
 
-    savePresetButton.textContent = 'Update Preset'; // Change button text
-    editingItemId = presetData.id; // Set editing state
+    savePresetButton.textContent = 'Update Preset';
+    editingItemId = presetData.id;
     editingItemType = 'preset';
 }
 
@@ -1317,10 +1373,10 @@ function handleSavePreset(event) {
      event.preventDefault();
 
     const name = presetNameInput.value.trim();
-    const prompt = presetPromptInput.value.trim();
-    const model = presetModelInput.value.trim();
-    const proxy = presetProxyInput.value.trim();
-    const apiKey = presetApiKeyInput.value.trim(); // This will be the value (string)
+    const prompt = presetPromptSelect.value; // Get value from select
+    const model = presetModelSelect.value;   // Get value from select
+    const proxy = presetProxySelect.value;   // Get value from select
+    const apiKey = presetApiKeySelect.value; // Get value from select
 
     if (!name || !prompt) {
         showCustomMessageBox('Preset Name and Prompt are required.');
@@ -1331,10 +1387,8 @@ function handleSavePreset(event) {
         let presets = data.savedPresets;
 
         if (editingItemId && editingItemType === 'preset') {
-            // Update existing preset
             const index = presets.findIndex(p => p.id === editingItemId);
             if (index !== -1) {
-                // Check for duplicate name if changed to a new name that already exists
                 const existingWithName = presets.find(p => p.name === name && p.id !== editingItemId);
                 if (existingWithName) {
                     showCustomMessageBox('A Preset with this name already exists!');
@@ -1348,12 +1402,10 @@ function handleSavePreset(event) {
                     proxy: proxy,
                     apiKey: apiKey
                 };
-                // showCustomMessageBox(`Preset "${name}" updated!`); // Removed success message
             } else {
                 showCustomMessageBox('Error: Preset not found for update.');
             }
         } else {
-            // Add new preset
             if (presets.some(p => p.name === name)) {
                 showCustomMessageBox('A Preset with this name already exists!');
                 return;
@@ -1367,11 +1419,9 @@ function handleSavePreset(event) {
                 apiKey: apiKey
             };
             presets.push(newItem);
-            // showCustomMessageBox(`Preset "${name}" saved!`); // Removed success message
         }
 
         chrome.storage.local.set({ savedPresets: presets }, () => {
-            // if (DEBUG_MODE) console.log('Presets updated:', presets); // Removed console.log
             presetFormArea.style.display = 'none';
             showAllListAreas();
             reloadAllLists();
@@ -1387,7 +1437,6 @@ function handleDeletePreset(idToDelete) {
 
         if (presets.length < initialLength) {
             chrome.storage.local.set({ savedPresets: presets }, () => {
-                // if (DEBUG_MODE) console.log('Preset deleted:', idToDelete); // Removed console.log
                 showCustomMessageBox('Preset deleted successfully!');
                 reloadAllLists();
             });
@@ -1403,7 +1452,756 @@ function handleCancelPresetForm() {
     reloadAllLists();
 }
 
+
+// --- Functions for Themes ---
+
+const DEFAULT_THEME_COLORS = {
+    '--bg-primary': '#0A0517',
+    '--bg-secondary': '#1A0B3B',
+    '--bg-list-item': 'rgba(45, 22, 87, 0.3)',
+    '--bg-list-item-hover': 'rgba(45, 22, 87, 0.5)',
+    '--text-default': '#ABB2BF',
+    '--text-heading': '#8E67FF',
+    '--text-info': '#61AFEF',
+    '--border-primary': '#2D1657',
+};
+
+const THEME_PRESETS = [
+    {
+        id: 'dark-purple',
+        name: 'Dark Purple',
+        colors: {
+            '--bg-primary': '#0A0517',
+            '--bg-secondary': '#1A0B3B',
+            '--bg-list-item': 'rgba(45, 22, 87, 0.3)',
+            '--bg-list-item-hover': 'rgba(45, 22, 87, 0.5)',
+            '--text-default': '#ABB2BF',
+            '--text-heading': '#8E67FF',
+            '--text-info': '#61AFEF',
+            '--border-primary': '#2D1657',
+        }
+    },
+    {
+        id: 'light-mode',
+        name: 'Light Mode',
+        colors: {
+            '--bg-primary': '#f0f2f5',
+            '--bg-secondary': '#e0e2e5',
+            '--bg-list-item': 'rgba(250, 250, 250, 0.8)',
+            '--bg-list-item-hover': 'rgba(230, 230, 230, 0.9)',
+            '--text-default': '#333',
+            '--text-heading': '#000000',
+            '--text-info': '#555',
+            '--border-primary': '#ccc',
+        }
+    },
+    {
+        id: 'dark-mode',
+        name: 'Dark Mode',
+        colors: {
+            '--bg-primary': '#1A1A1A',
+            '--bg-secondary': '#2B2B2B',
+            '--bg-list-item': 'rgba(45, 45, 45, 0.7)',
+            '--bg-list-item-hover': 'rgba(60, 60, 60, 0.9)',
+            '--text-default': '#E0E0E0',
+            '--text-heading': '#FFFFFF',
+            '--text-info': '#BBBBBB',
+            '--border-primary': '#404040',
+        }
+    },
+    {
+        id: 'darker-mode',
+        name: 'Darker Mode',
+        colors: {
+            '--bg-primary': '#101010',
+            '--bg-secondary': '#181818',
+            '--bg-list-item': 'rgba(25, 25, 25, 0.7)',
+            '--bg-list-item-hover': 'rgba(35, 35, 35, 0.9)',
+            '--text-default': '#C0C0C0',
+            '--text-heading': '#E0E0E0',
+            '--text-info': '#A0A0A0',
+            '--border-primary': '#202020',
+        }
+    },
+    {
+        id: 'forest-green',
+        name: 'Forest Green',
+        colors: {
+            '--bg-primary': '#1a2a2a',
+            '--bg-secondary': '#2a3a2a',
+            '--bg-list-item': 'rgba(40, 60, 40, 0.5)',
+            '--bg-list-item-hover': 'rgba(50, 70, 50, 0.7)',
+            '--text-default': '#c0d0c0',
+            '--text-heading': '#80c080',
+            '--text-info': '#90b090',
+            '--border-primary': '#507050',
+        }
+    },
+    {
+        id: 'ocean',
+        name: 'Ocean',
+        colors: {
+            '--bg-primary': '#003366',
+            '--bg-secondary': '#004488',
+            '--bg-list-item': 'rgba(0, 80, 160, 0.5)',
+            '--bg-list-item-hover': 'rgba(0, 90, 180, 0.7)',
+            '--text-default': '#ADD8E6',
+            '--text-heading': '#87CEEB',
+            '--text-info': '#6495ED',
+            '--border-primary': '#0055AA',
+        }
+    },
+    {
+        id: 'sky-blue',
+        name: 'Sky Blue',
+        colors: {
+            '--bg-primary': '#87CEEB',
+            '--bg-secondary': '#C8E6F0',
+            '--bg-list-item': 'rgba(173, 216, 230, 0.8)',
+            '--bg-list-item-hover': 'rgba(150, 200, 220, 0.9)',
+            '--text-default': '#000000',
+            '--text-heading': '#000000',
+            '--text-info': '#5CB8E0',
+            '--border-primary': '#A7D9EB',
+        }
+    },
+    {
+        id: 'void-new',
+        name: 'Void',
+        colors: {
+            '--bg-primary': '#050505',
+            '--bg-secondary': '#0A0A0A',
+            '--bg-list-item': 'rgba(15, 15, 15, 0.8)',
+            '--bg-list-item-hover': 'rgba(25, 25, 25, 0.9)',
+            '--text-default': '#B0B0B0',
+            '--text-heading': '#D0D0D0',
+            '--text-info': '#808080',
+            '--border-primary': '#151515',
+        }
+    },
+    {
+        id: 'pink',
+        name: 'Pink',
+        colors: {
+            '--bg-primary': '#FDEBF7',
+            '--bg-secondary': '#F9DCEF',
+            '--bg-list-item': 'rgba(255, 220, 240, 0.8)',
+            '--bg-list-item-hover': 'rgba(255, 200, 230, 0.9)',
+            '--text-default': '#5C2A4F',
+            '--text-heading': '#D81B60',
+            '--text-info': '#E91E63',
+            '--border-primary': '#F2B5D4',
+        }
+    },
+    {
+        id: 'honey',
+        name: 'Honey',
+        colors: {
+            '--bg-primary': '#2B210A',
+            '--bg-secondary': '#3D3110',
+            '--bg-list-item': 'rgba(60, 45, 15, 0.7)',
+            '--bg-list-item-hover': 'rgba(70, 55, 20, 0.9)',
+            '--text-default': '#F2D79A',
+            '--text-heading': '#FFC107',
+            '--text-info': '#FFD54F',
+            '--border-primary': '#4F3E1A',
+        }
+    },
+    {
+        id: 'crimson',
+        name: 'Crimson',
+        colors: {
+            '--bg-primary': '#330000',
+            '--bg-secondary': '#440000',
+            '--bg-list-item': 'rgba(80, 0, 0, 0.6)',
+            '--bg-list-item-hover': 'rgba(100, 0, 0, 0.8)',
+            '--text-default': '#FFCCCC',
+            '--text-heading': '#DC143C',
+            '--text-info': '#FF6347',
+            '--border-primary': '#660000',
+        }
+    },
+    {
+        id: 'light-purple',
+        name: 'Light Purple',
+        colors: {
+            '--bg-primary': '#2A1A40',
+            '--bg-secondary': '#3A2B50',
+            '--bg-list-item': 'rgba(61, 38, 97, 0.4)',
+            '--bg-list-item-hover': 'rgba(71, 48, 107, 0.6)',
+            '--text-default': '#ABB2BF',
+            '--text-heading': '#8E67FF',
+            '--text-info': '#61AFEF',
+            '--border-primary': '#4D3677',
+        }
+    },
+    {
+        id: 'monochromatic-grey',
+        name: 'Monochromatic Grey',
+        colors: {
+            '--bg-primary': '#222222',
+            '--bg-secondary': '#333333',
+            '--bg-list-item': 'rgba(60, 60, 60, 0.7)',
+            '--bg-list-item-hover': 'rgba(80, 80, 80, 0.8)',
+            '--text-default': '#CCCCCC',
+            '--text-heading': '#E0E0E0',
+            '--text-info': '#AAAAAA',
+            '--border-primary': '#555555',
+        }
+    },
+    {
+        id: 'warm-earthy',
+        name: 'Warm Tones (Autumn)',
+        colors: {
+            '--bg-primary': '#4B3F38',
+            '--bg-secondary': '#6B5B50',
+            '--bg-list-item': 'rgba(139, 69, 19, 0.5)',
+            '--bg-list-item-hover': 'rgba(160, 82, 45, 0.7)',
+            '--text-default': '#F2E8D7',
+            '--text-heading': '#E09B60',
+            '--text-info': '#D4B89C',
+            '--border-primary': '#8B4513',
+        }
+    },
+    {
+        id: 'cool-ice',
+        name: 'Cool Tones (Winter)',
+        colors: {
+            '--bg-primary': '#2C3E50',
+            '--bg-secondary': '#4A6278',
+            '--bg-list-item': 'rgba(173, 216, 230, 0.3)',
+            '--bg-list-item-hover': 'rgba(173, 216, 230, 0.5)',
+            '--text-default': '#EBF5F8',
+            '--text-heading': '#9AC8E2',
+            '--text-info': '#B0D9EA',
+            '--border-primary': '#708090',
+        }
+    },
+    {
+        id: 'high-contrast-black-yellow',
+        name: 'High Contrast (Black & Yellow)',
+        colors: {
+            '--bg-primary': '#000000',
+            '--bg-secondary': '#222222',
+            '--bg-list-item': 'rgba(255, 255, 0, 0.2)',
+            '--bg-list-item-hover': 'rgba(255, 255, 0, 0.4)',
+            '--text-default': '#FFFF00',
+            '--text-heading': '#FFFF00',
+            '--text-info': '#EEEE00',
+            '--border-primary': '#555500',
+        }
+    },
+    {
+        id: 'retro-vaporwave',
+        name: 'Retro Vaporwave',
+        colors: {
+            '--bg-primary': '#1A002A',
+            '--bg-secondary': '#2A004A',
+            '--bg-list-item': 'rgba(80, 0, 120, 0.4)',
+            '--bg-list-item-hover': 'rgba(100, 0, 150, 0.6)',
+            '--text-default': '#00FFFF',
+            '--text-heading': '#FF00FF',
+            '--text-info': '#00AAFF',
+            '--border-primary': '#550088',
+        }
+    },
+    {
+        id: 'nature-green-brown',
+        name: 'Nature (Green & Brown)',
+        colors: {
+            '--bg-primary': '#2F4F4F',
+            '--bg-secondary': '#4CAF50',
+            '--bg-list-item': 'rgba(60, 110, 60, 0.4)',
+            '--bg-list-item-hover': 'rgba(70, 130, 70, 0.6)',
+            '--text-default': '#E0E0E0',
+            '--text-heading': '#A2CD5A',
+            '--text-info': '#C0C0C0',
+            '--border-primary': '#6B8E23',
+        }
+    },
+    {
+        id: 'ocean-sunset',
+        name: 'Ocean Sunset',
+        colors: {
+            '--bg-primary': '#0A1C2C',
+            '--bg-secondary': '#1C3D52',
+            '--bg-list-item': 'rgba(255, 102, 0, 0.3)',
+            '--bg-list-item-hover': 'rgba(255, 102, 0, 0.5)',
+            '--text-default': '#E0F2F7',
+            '--text-heading': '#FF8C00',
+            '--text-info': '#FFD700',
+            '--border-primary': '#0077B6',
+        }
+    },
+    {
+        id: 'minimalist-white',
+        name: 'Minimalist White',
+        colors: {
+            '--bg-primary': '#FFFFFF',
+            '--bg-secondary': '#F8F8F8',
+            '--bg-list-item': 'rgba(240, 240, 240, 0.8)',
+            '--bg-list-item-hover': 'rgba(220, 220, 220, 0.9)',
+            '--text-default': '#333333',
+            '--text-heading': '#000000',
+            '--text-info': '#666666',
+            '--border-primary': '#CCCCCC',
+        }
+    },
+    {
+        id: 'black-red-elements',
+        name: 'Black and Red Elements',
+        colors: {
+            '--bg-primary': '#0A0A0A',
+            '--bg-secondary': '#1A1A1A',
+            '--bg-list-item': 'rgba(255, 0, 0, 0.3)',
+            '--bg-list-item-hover': 'rgba(255, 0, 0, 0.5)',
+            '--text-default': '#FFFFFF',
+            '--text-heading': '#FFFFFF',
+            '--text-info': '#FF6666',
+            '--border-primary': '#330000',
+        }
+    },
+];
+
+
+function applyTheme(themeColors) {
+    const root = document.documentElement;
+    for (const [prop, value] of Object.entries(themeColors)) {
+        root.style.setProperty(prop, value);
+    }
+
+    const primaryBg = themeColors['--bg-primary'];
+    const secondaryBg = themeColors['--bg-secondary'];
+    const borderPrimary = themeColors['--border-primary'];
+    const textHeading = themeColors['--text-heading'];
+
+    const formAreaGradient = `linear-gradient(160deg, ${hexToRgba(primaryBg, 0.8)}, ${hexToRgba(secondaryBg, 0.8)}, ${hexToRgba(borderPrimary, 0.8)}, ${hexToRgba(secondaryBg, 0.8)}, ${hexToRgba(primaryBg, 0.8)})`;
+    const listContainerGradient = `linear-gradient(160deg, ${hexToRgba(primaryBg, 0.7)}, ${hexToRgba(secondaryBg, 0.7)}, ${hexToRgba(borderPrimary, 0.7)}, ${hexToRgba(secondaryBg, 0.7)}, ${hexToRgba(primaryBg, 0.7)})`;
+
+    root.style.setProperty('--bg-form-area', formAreaGradient);
+    root.style.setProperty('--bg-list-container', listContainerGradient);
+
+    root.style.setProperty('--shadow-button-inset-color-glow', hexToRgba(textHeading, 0.4));
+    root.style.setProperty('--shadow-button-hover-inset-color-glow', hexToRgba(textHeading, 0.6));
+}
+
+function loadAndDisplayDefaultThemes() {
+    defaultThemesListDiv.innerHTML = '';
+    if (THEME_PRESETS.length === 0) {
+        defaultThemesListDiv.appendChild(noDefaultThemesMessage);
+        noDefaultThemesMessage.style.display = 'block';
+    } else {
+        noDefaultThemesMessage.style.display = 'none';
+        THEME_PRESETS.forEach(theme => {
+            const item = document.createElement('div');
+            item.className = 'data-list-item';
+            item.dataset.id = theme.id;
+            item.draggable = false;
+
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                applyTheme(theme.colors);
+                chrome.storage.local.set({ currentThemeId: theme.id });
+            });
+
+            defaultThemesListDiv.appendChild(item);
+
+            const itemHeader = document.createElement('div');
+            itemHeader.className = 'item-header';
+            item.appendChild(itemHeader);
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'item-name';
+            nameSpan.textContent = theme.name;
+            itemHeader.appendChild(nameSpan);
+        });
+    }
+}
+
+function loadAndDisplayCustomThemes() {
+    chrome.storage.local.get({ savedThemes: [] }, (data) => {
+        let themes = data.savedThemes;
+        customThemesListDiv.innerHTML = '';
+        if (DEBUG_MODE) console.log('[savedThemes] Loaded:', JSON.parse(JSON.stringify(themes)));
+
+        if (themes.length === 0) {
+            customThemesListDiv.appendChild(noCustomThemesMessage);
+            noCustomThemesMessage.style.display = 'block';
+        } else {
+            noCustomThemesMessage.style.display = 'none';
+            themes.forEach(theme => {
+                const item = document.createElement('div');
+                item.className = 'data-list-item';
+                item.dataset.id = theme.id;
+                item.draggable = true;
+
+                item.addEventListener('dragstart', (e) => handleDragStart(e, theme, 'savedThemes', 'id'));
+                item.addEventListener('dragend', handleDragEnd);
+
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const actionButtons = item.querySelector('.action-buttons');
+                    if (actionButtons) {
+                        if (actionButtons.classList.contains('hidden')) {
+                            hideAllActionButtons();
+                            actionButtons.classList.remove('hidden');
+                        } else {
+                            actionButtons.classList.add('hidden');
+                        }
+                    }
+                });
+
+                customThemesListDiv.appendChild(item);
+
+                const itemHeader = document.createElement('div');
+                itemHeader.className = 'item-header';
+                item.appendChild(itemHeader);
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'item-name';
+                nameSpan.textContent = theme.name;
+                itemHeader.appendChild(nameSpan);
+
+                const actionButtonsContainer = document.createElement('div');
+                actionButtonsContainer.className = 'action-buttons hidden';
+
+                const applyButton = document.createElement('button');
+                applyButton.textContent = 'Apply';
+                applyButton.className = 'edit-button';
+                applyButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    applyTheme(theme.colors);
+                    chrome.storage.local.set({ currentThemeId: theme.id });
+                });
+                actionButtonsContainer.appendChild(applyButton);
+
+                const editButton = document.createElement('button');
+                editButton.innerHTML = '<i class="fas fa-pencil-alt"></i>';
+                editButton.className = 'edit-button icon-button';
+                editButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showEditThemeForm(theme);
+                });
+                actionButtonsContainer.appendChild(editButton);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                deleteButton.className = 'delete-button icon-button';
+                deleteButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showCustomMessageBox(`Are you sure you want to delete theme "${theme.name}"?`, () => handleDeleteTheme(theme.id), true);
+                });
+                actionButtonsContainer.appendChild(deleteButton);
+
+                itemHeader.appendChild(actionButtonsContainer);
+            });
+        }
+    });
+}
+
+
+function showAddThemeForm() {
+    showAllListAreas();
+    themeForm.reset();
+    hideAllForms();
+    customThemesArea.style.display = 'flex'; // Changed to 'flex'
+    customThemesListDiv.style.display = 'none';
+    addCustomThemeButton.style.display = 'flex';
+    themeFormArea.style.display = 'block';
+    saveThemeButton.textContent = 'Save Theme';
+    editingItemId = null;
+    editingItemType = null;
+
+    // Show the template dropdown when adding a new theme
+    themeTemplateInput.parentElement.style.display = 'block';
+
+    const rootStyles = getComputedStyle(document.documentElement);
+    themePrimaryBgInput.value = rgbToHex(rootStyles.getPropertyValue('--bg-primary'));
+    themeSecondaryBgInput.value = rgbToHex(rootStyles.getPropertyValue('--bg-secondary'));
+    themeListItemBgInput.value = rgbToHex(rootStyles.getPropertyValue('--bg-list-item'));
+    themeListItemHoverBgInput.value = rgbToHex(rootStyles.getPropertyValue('--bg-list-item-hover'));
+    themeTextDefaultInput.value = rgbToHex(rootStyles.getPropertyValue('--text-default'));
+    themeTextHeadingInput.value = rgbToHex(rootStyles.getPropertyValue('--text-heading'));
+    themeTextInfoInput.value = rgbToHex(rootStyles.getPropertyValue('--text-info'));
+    themeBorderPrimaryInput.value = rgbToHex(rootStyles.getPropertyValue('--border-primary'));
+
+    populateThemeTemplateDropdown();
+}
+
+function populateThemeTemplateDropdown() {
+    themeTemplateInput.innerHTML = '<option value="">-- Select a template --</option>';
+
+    chrome.storage.local.get({ savedThemes: [] }, (data) => {
+        const allThemes = [...THEME_PRESETS, ...data.savedThemes];
+
+        allThemes.forEach(theme => {
+            const option = document.createElement('option');
+            option.value = theme.id;
+            option.textContent = theme.name;
+            themeTemplateInput.appendChild(option);
+        });
+    });
+
+    themeTemplateInput.onchange = (event) => {
+        const selectedId = event.target.value;
+        if (selectedId) {
+            chrome.storage.local.get({ savedThemes: [] }, (data) => {
+                const allThemes = [...THEME_PRESETS, ...data.savedThemes];
+                const selectedTheme = allThemes.find(t => t.id === selectedId);
+                if (selectedTheme) {
+                    themeNameInput.value = selectedTheme.name + " (Copy)";
+                    themePrimaryBgInput.value = selectedTheme.colors['--bg-primary'];
+                    themeSecondaryBgInput.value = selectedTheme.colors['--bg-secondary'];
+                    themeListItemBgInput.value = selectedTheme.colors['--bg-list-item'];
+                    themeListItemHoverBgInput.value = selectedTheme.colors['--bg-list-item-hover'];
+                    themeTextDefaultInput.value = selectedTheme.colors['--text-default'];
+                    themeTextHeadingInput.value = selectedTheme.colors['--text-heading'];
+                    themeTextInfoInput.value = selectedTheme.colors['--text-info'];
+                    themeBorderPrimaryInput.value = selectedTheme.colors['--border-primary'];
+                }
+            });
+        } else {
+            themeNameInput.value = '';
+            const rootStyles = getComputedStyle(document.documentElement);
+            themePrimaryBgInput.value = rgbToHex(rootStyles.getPropertyValue('--bg-primary'));
+            themeSecondaryBgInput.value = rgbToHex(rootStyles.getPropertyValue('--bg-secondary'));
+            themeListItemBgInput.value = rgbToHex(rootStyles.getPropertyValue('--bg-list-item'));
+            themeListItemHoverBgInput.value = rgbToHex(rootStyles.getPropertyValue('--bg-list-item-hover'));
+            themeTextDefaultInput.value = rgbToHex(rootStyles.getPropertyValue('--text-default'));
+            themeTextHeadingInput.value = rgbToHex(rootStyles.getPropertyValue('--text-heading'));
+            themeTextInfoInput.value = rgbToHex(rootStyles.getPropertyValue('--text-info'));
+            themeBorderPrimaryInput.value = rgbToHex(rootStyles.getPropertyValue('--border-primary'));
+        }
+    };
+}
+
+
+function showEditThemeForm(themeData) {
+    showAllListAreas();
+    themeForm.reset();
+    hideAllForms();
+    customThemesArea.style.display = 'flex'; // Changed to 'flex'
+    customThemesListDiv.style.display = 'none';
+    addCustomThemeButton.style.display = 'flex';
+    themeFormArea.style.display = 'block';
+
+    // Hide the template dropdown when editing a theme
+    themeTemplateInput.parentElement.style.display = 'none';
+
+    themeNameInput.value = themeData.name;
+    themePrimaryBgInput.value = themeData.colors['--bg-primary'] || DEFAULT_THEME_COLORS['--bg-primary'];
+    themeSecondaryBgInput.value = themeData.colors['--bg-secondary'] || DEFAULT_THEME_COLORS['--bg-secondary'];
+    themeListItemBgInput.value = themeData.colors['--bg-list-item'] || DEFAULT_THEME_COLORS['--bg-list-item'];
+    themeListItemHoverBgInput.value = themeData.colors['--bg-list-item-hover'] || DEFAULT_THEME_COLORS['--bg-list-item-hover'];
+    themeTextDefaultInput.value = themeData.colors['--text-default'] || DEFAULT_THEME_COLORS['--text-default'];
+    themeTextHeadingInput.value = themeData.colors['--text-heading'] || DEFAULT_THEME_COLORS['--text-heading'];
+    themeTextInfoInput.value = themeData.colors['--text-info'] || DEFAULT_THEME_COLORS['--text-info'];
+    themeBorderPrimaryInput.value = themeData.colors['--border-primary'] || DEFAULT_THEME_COLORS['--border-primary'];
+
+    saveThemeButton.textContent = 'Update Theme';
+    editingItemId = themeData.id;
+    editingItemType = 'theme';
+}
+
+function handleSaveTheme(event) {
+    event.preventDefault();
+    const name = themeNameInput.value.trim();
+    if (!name) {
+        showCustomMessageBox('Theme name is required.');
+        return;
+    }
+
+    const newThemeColors = {
+        '--bg-primary': themePrimaryBgInput.value,
+        '--bg-secondary': themeSecondaryBgInput.value,
+        '--bg-list-item': themeListItemBgInput.value,
+        '--bg-list-item-hover': themeListItemHoverBgInput.value,
+        '--text-default': themeTextDefaultInput.value,
+        '--text-heading': themeTextHeadingInput.value,
+        '--text-info': themeTextInfoInput.value,
+        '--border-primary': themeBorderPrimaryInput.value,
+    };
+
+    chrome.storage.local.get({ savedThemes: [] }, (data) => {
+        let themes = data.savedThemes;
+
+        if (editingItemId && editingItemType === 'theme') {
+            const index = themes.findIndex(t => t.id === editingItemId);
+            if (index !== -1) {
+                if (themes.some(t => t.name === name && t.id !== editingItemId)) {
+                    showCustomMessageBox('A theme with this name already exists!');
+                    return;
+                }
+                themes[index] = { id: editingItemId, name: name, colors: newThemeColors };
+            } else {
+                    showCustomMessageBox('Error: Theme not found for update.');
+            }
+        } else {
+            if (themes.some(t => t.name === name)) {
+                showCustomMessageBox('A theme with this name already exists!');
+                return;
+            }
+            const newTheme = {
+                id: generateUniqueId(),
+                name: name,
+                colors: newThemeColors
+            };
+            themes.push(newTheme);
+        }
+
+        chrome.storage.local.set({ savedThemes: themes }, () => {
+            themeFormArea.style.display = 'none';
+            showAllListAreas();
+            reloadAllLists();
+        });
+    });
+}
+
+function handleDeleteTheme(idToDelete) {
+    chrome.storage.local.get({ savedThemes: [], currentThemeId: null }, (data) => {
+        let themes = data.savedThemes;
+        const initialLength = themes.length;
+        themes = themes.filter(t => t.id !== idToDelete);
+
+        if (themes.length < initialLength) {
+            chrome.storage.local.set({ savedThemes: themes }, () => {
+                showCustomMessageBox('Theme deleted successfully!');
+                if (data.currentThemeId === idToDelete) {
+                    applyTheme(DEFAULT_THEME_COLORS);
+                    chrome.storage.local.set({ currentThemeId: DEFAULT_THEME_COLORS.id });
+                }
+                reloadAllLists();
+            });
+        } else {
+            showCustomMessageBox('Error: Theme not found for deletion.');
+        }
+    });
+}
+
+function handleCancelThemeForm() {
+    themeFormArea.style.display = 'none';
+    themeTemplateInput.parentElement.style.display = 'block'; // Show template dropdown again
+    showAllListAreas();
+    reloadAllLists();
+}
+
+// Helper to convert rgb(a) to hex for color input default values
+function rgbToHex(rgb) {
+    if (!rgb || rgb.startsWith('#')) {
+        return rgb;
+    }
+    const parts = rgb.match(/\d+/g);
+    if (!parts || parts.length < 3) return rgb;
+
+    const r = parseInt(parts[0]);
+    const g = parseInt(parts[1]);
+    const b = parseInt(parts[2]);
+
+    const toHex = (c) => {
+        const hex = Math.round(c).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    };
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+// Helper to convert hex to rgba
+function hexToRgba(hex, alpha) {
+    if (!hex || !hex.startsWith('#')) {
+        return hex;
+    }
+    const r = parseInt(hex.substring(1, 3), 16);
+    const g = parseInt(hex.substring(3, 5), 16);
+    const b = parseInt(hex.substring(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// --- Import/Export Functions (NEW) ---
+
+function handleExportData() {
+    showCustomMessageBox('Are you sure you want to export all your data?', async () => {
+        try {
+            const data = await chrome.storage.local.get(null); // Get all data
+            const jsonData = JSON.stringify(data, null, 2); // Pretty print JSON
+
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'shoddy_api_manager_data.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showCustomMessageBox('Data exported successfully!');
+        } catch (error) {
+            console.error('Error exporting data:', error);
+            showCustomMessageBox('Failed to export data. See console for details.');
+        }
+    }, true); // Show cancel button
+}
+
+function handleImportData() {
+    showCustomMessageBox('Are you sure you want to import data? This will OVERRIDE all your current data!', () => {
+        importFileInput.click(); // Trigger the hidden file input
+    }, true); // Show cancel button
+}
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) {
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const importedData = JSON.parse(e.target.result);
+
+            // Basic validation: Check if expected top-level keys exist and are objects/arrays
+            const expectedKeys = [
+                'savedPrompts', 'savedModels', 'savedProxies',
+                'savedApiKeys', 'savedPresets', 'savedThemes',
+                'currentThemeId'
+            ];
+            let isValid = true;
+            for (const key of expectedKeys) {
+                if (!(key in importedData)) {
+                    isValid = false;
+                    break;
+                }
+            }
+
+            if (!isValid) {
+                showCustomMessageBox('Invalid data format. Please select a valid Shoddy API Manager export file.');
+                return;
+            }
+
+            // Clear current storage and set new data
+            await chrome.storage.local.clear();
+            await chrome.storage.local.set(importedData, () => {
+                showCustomMessageBox('Data imported successfully! Reloading...');
+                reloadAllLists();
+                showView(mainView); // Go back to main view after import
+            });
+
+        } catch (error) {
+            console.error('Error importing data:', error);
+            showCustomMessageBox('Failed to import data. Ensure it is a valid JSON file. See console for details.');
+        } finally {
+            event.target.value = ''; // Clear the file input to allow re-importing the same file
+        }
+    };
+    reader.readAsText(file);
+}
+
+
 // --- Event Listeners ---
+
+// View Navigation
+settingsButton.addEventListener('click', () => showView(settingsView));
+backButton.addEventListener('click', () => showView(mainView));
 
 // Prompts
 addPromptButton.addEventListener('click', showAddPromptForm);
@@ -1430,6 +2228,16 @@ addPresetButton.addEventListener('click', showAddPresetForm);
 presetForm.addEventListener('submit', handleSavePreset);
 cancelPresetButton.addEventListener('click', handleCancelPresetForm);
 
+// Themes
+addCustomThemeButton.addEventListener('click', showAddThemeForm);
+themeForm.addEventListener('submit', handleSaveTheme);
+cancelThemeButton.addEventListener('click', handleCancelThemeForm);
+
+// Import/Export (NEW)
+exportDataButton.addEventListener('click', handleExportData);
+importDataButton.addEventListener('click', handleImportData);
+importFileInput.addEventListener('change', handleFileSelect);
+
 
 // Custom Message Box
 messageBoxOkButton.addEventListener('click', hideCustomMessageBox);
@@ -1443,47 +2251,66 @@ messageBoxOkButton.addEventListener('click', hideCustomMessageBox);
  */
 function isMobileFirefox() {
     const userAgent = navigator.userAgent;
-    // Check for "Firefox" and common mobile indicators like "Mobile" or "Android"
     return userAgent.includes("Firefox") && (userAgent.includes("Mobile") || userAgent.includes("Android"));
 }
 
 // Load and display all lists and presets when the popup is opened
 document.addEventListener('DOMContentLoaded', () => {
+    chrome.storage.local.get({ currentThemeId: null, savedThemes: [] }, (data) => {
+        let selectedTheme = THEME_PRESETS[0];
+
+        if (data.currentThemeId) {
+            selectedTheme = THEME_PRESETS.find(t => t.id === data.currentThemeId) || selectedTheme;
+            selectedTheme = data.savedThemes.find(t => t.id === data.currentThemeId) || selectedTheme;
+        }
+        applyTheme(selectedTheme.colors);
+        chrome.storage.local.set({ currentThemeId: selectedTheme.id });
+    });
+
     reloadAllLists();
+    showView(mainView);
 
     if (isMobileFirefox()) {
         console.log("Detected Mobile Firefox. Adjusting popup size for better mobile experience.");
-        // Apply fullscreen width and height for mobile Firefox
         document.body.style.width = '100vw';
         document.body.style.height = '100vh';
-        document.body.style.maxWidth = 'none'; // Remove max width constraint
-        document.body.style.minWidth = 'unset'; // Remove min width constraint
-        document.body.style.padding = '15px'; // Keep padding for content spacing
+        document.body.style.maxWidth = 'none';
+        document.body.style.minWidth = 'unset';
+        document.body.style.padding = '15px';
     }
 
-    // Attach dragenter, dragover, dragleave, and drop listeners to the list containers
     promptsListDiv.addEventListener('dragenter', (e) => e.preventDefault());
-    promptsListDiv.addEventListener('dragover', handleDragOver); // Moved here
+    promptsListDiv.addEventListener('dragover', handleDragOver);
     promptsListDiv.addEventListener('dragleave', handleDragLeave);
     promptsListDiv.addEventListener('drop', handleDrop);
 
     modelsListDiv.addEventListener('dragenter', (e) => e.preventDefault());
-    modelsListDiv.addEventListener('dragover', handleDragOver); // Moved here
+    modelsListDiv.addEventListener('dragover', handleDragOver);
     modelsListDiv.addEventListener('dragleave', handleDragLeave);
     modelsListDiv.addEventListener('drop', handleDrop);
 
     proxyUrlsListDiv.addEventListener('dragenter', (e) => e.preventDefault());
-    proxyUrlsListDiv.addEventListener('dragover', handleDragOver); // Moved here
+    proxyUrlsListDiv.addEventListener('dragover', handleDragOver);
     proxyUrlsListDiv.addEventListener('dragleave', handleDragLeave);
     proxyUrlsListDiv.addEventListener('drop', handleDrop);
 
     apiKeysListDiv.addEventListener('dragenter', (e) => e.preventDefault());
-    apiKeysListDiv.addEventListener('dragover', handleDragOver); // Moved here
+    apiKeysListDiv.addEventListener('dragover', handleDragOver);
     apiKeysListDiv.addEventListener('dragleave', handleDragLeave);
     apiKeysListDiv.addEventListener('drop', handleDrop);
 
     presetsListDiv.addEventListener('dragenter', (e) => e.preventDefault());
-    presetsListDiv.addEventListener('dragover', handleDragOver); // Moved here
+    presetsListDiv.addEventListener('dragover', handleDragOver);
     presetsListDiv.addEventListener('dragleave', handleDragLeave);
     presetsListDiv.addEventListener('drop', handleDrop);
+
+    defaultThemesListDiv.addEventListener('dragenter', (e) => e.preventDefault());
+    defaultThemesListDiv.addEventListener('dragover', handleDragOver);
+    defaultThemesListDiv.addEventListener('dragleave', handleDragLeave);
+    defaultThemesListDiv.addEventListener('drop', handleDrop);
+
+    customThemesListDiv.addEventListener('dragenter', (e) => e.preventDefault());
+    customThemesListDiv.addEventListener('dragover', handleDragOver);
+    customThemesListDiv.addEventListener('dragleave', handleDragLeave);
+    customThemesListDiv.addEventListener('drop', handleDrop);
 });

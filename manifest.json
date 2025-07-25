@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Shoddy JAI API Manager",
-  "version": "1.2",
+  "version": "2.0",
   "description": "Lets you store Prompts, Models, Proxy URLs, API Keys and Presets containing ALL of those locally. Injects custom buttons and dropdowns into the JAI API Settings menu.",
   "permissions": [
     "activeTab",
@@ -10,7 +10,10 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Custom Setups"
+    "default_title": "Custom Setups",
+    "default_icon": {
+      "128": "Logo.png"
+    }
   },
   "content_scripts": [
     {

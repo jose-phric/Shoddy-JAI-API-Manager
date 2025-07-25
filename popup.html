@@ -1,266 +1,495 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Shoddy JAI API Manager</title> <!-- Updated title -->
+  <title>Shoddy API Manager</title>
   <!-- Google Fonts - Jura for the futuristic/techy look -->
   <link href="https://fonts.googleapis.com/css2?family=Jura:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome CDN for icons (pencil, trash) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
+    /* CSS Variables for Theming */
+    :root {
+      --bg-primary: #0A0517;
+      --bg-secondary: #1A0B3B;
+      --bg-list-item: rgba(45, 22, 87, 0.3);
+      --bg-list-item-hover: rgba(45, 22, 87, 0.5);
+      --bg-form-area: linear-gradient(160deg, rgba(10, 5, 23, 0.8), rgba(26, 11, 59, 0.8), rgba(45, 22, 87, 0.8), rgba(26, 11, 59, 0.8), rgba(10, 5, 23, 0.8));
+      --bg-list-container: linear-gradient(160deg, rgba(10, 5, 23, 0.7), rgba(26, 11, 59, 0.7), rgba(45, 22, 87, 0.7), rgba(26, 11, 59, 0.7), rgba(10, 5, 23, 0.7));
+
+      --text-default: #ABB2BF;
+      --text-heading: rgb(142, 103, 255);
+      --text-info: #61afef;
+      --border-primary: rgb(45, 22, 87);
+      --border-secondary: rgba(45, 22, 87, 0.5);
+      --border-list-item: rgba(62, 68, 81, 0.5);
+      --shadow-primary: rgba(0, 0, 0, 0.16) 0px 3px 6px 0px, rgba(0, 0, 0, 0.23) 0px 3px 6px 0px;
+
+      /* Dynamic glow colors for button inset shadows */
+      --shadow-button-inset-color-glow: rgba(142, 103, 255, 0.4);
+      --shadow-button-hover-inset-color-glow: rgba(142, 103, 255, 0.6);
+
+      --shadow-button-inset: rgba(17, 7, 38, 0.7) 0px -2px 5px 1px inset, var(--shadow-button-inset-color-glow) 0px -1px 1px 3px inset;
+      --shadow-button-hover-inset: rgba(17, 7, 38, 0.8) 0px -3px 6px 2px inset, var(--shadow-button-hover-inset-color-glow) 0px -2px 2px 4px inset;
+
+      --shadow-text-heading: rgba(142, 103, 255, 0.8) 0px 0px 10px;
+      --shadow-text-label: rgba(142, 103, 255, 0.4) 0px 0px 3px;
+      --shadow-text-item-name: rgba(142, 103, 255, 0.6) 0px 0px 5px;
+
+      /* Specific button colors */
+      --button-edit-bg: linear-gradient(160deg, rgb(5, 10, 23), rgb(11, 26, 59), rgb(22, 45, 87), rgb(11, 26, 59), rgb(5, 10, 23));
+      --button-edit-border: rgb(22, 45, 87);
+      --button-edit-color: rgb(103, 142, 255);
+      --button-edit-shadow-inset: rgba(7, 17, 38, 0.7) 0px -2px 5px 1px inset, rgba(103, 142, 255, 0.4) 0px -1px 1px 3px inset;
+      --button-edit-shadow-hover-inset: rgba(7, 17, 38, 0.8) 0px -3px 6px 2px inset, rgba(103, 142, 255, 0.6) 0px -2px 2px 4px inset;
+      --button-edit-text-shadow: rgba(103, 142, 255, 0.8) 0px 0px 10px;
+
+      --button-delete-bg: linear-gradient(160deg, rgb(23, 5, 10), rgb(59, 11, 26), rgb(87, 22, 45), rgb(59, 11, 26), rgb(23, 5, 10));
+      --button-delete-border: rgb(87, 22, 45);
+      --button-delete-color: rgb(255, 103, 142);
+      --button-delete-shadow-inset: rgba(38, 7, 17, 0.7) 0px -2px 5px 1px inset, rgba(255, 103, 142, 0.4) 0px -1px 1px 3px inset;
+      --button-delete-shadow-hover-inset: rgba(38, 7, 17, 0.8) 0px -3px 6px 2px inset, rgba(255, 103, 142, 0.6) 0px -2px 2px 4px inset;
+      --button-delete-text-shadow: rgba(255, 103, 142, 0.8) 0px 0px 10px;
+    }
+
+    /* Light Mode Theme */
+    .theme-light {
+      --bg-primary: #f0f2f5;
+      --bg-secondary: #e0e2e5;
+      --bg-list-item: rgba(250, 250, 250, 0.8);
+      --bg-list-item-hover: rgba(230, 230, 230, 0.9);
+      --text-default: #333;
+      --text-heading: #000000;
+      --text-info: #555;
+      --border-primary: #ccc;
+      --border-secondary: rgba(0, 0, 0, 0.1);
+      --border-list-item: rgba(150, 150, 150, 0.5);
+      --shadow-primary: rgba(0, 0, 0, 0.08) 0px 2px 4px 0px, rgba(0, 0, 0, 0.12) 0px 2px 4px 0px;
+
+      --shadow-button-inset-color-glow: rgba(0, 0, 0, 0.2);
+      --shadow-button-hover-inset-color-glow: rgba(0, 0, 0, 0.3);
+
+      --shadow-text-heading: rgba(0, 0, 0, 0.2) 0px 0px 3px;
+      --shadow-text-label: rgba(0, 0, 0, 0.1) 0px 0px 1px;
+      --shadow-text-item-name: rgba(0, 0, 0, 0.15) 0px 0px 2px;
+
+      --button-edit-bg: linear-gradient(160deg, rgb(100, 120, 150), rgb(80, 100, 130), rgb(60, 80, 110), rgb(80, 100, 130), rgb(100, 120, 150));
+      --button-edit-border: rgb(60, 80, 110);
+      --button-edit-color: #fff;
+      --button-edit-shadow-inset: rgba(255, 255, 255, 0.4) 0px -2px 5px 1px inset, rgba(0, 0, 0, 0.1) 0px -1px 1px 3px inset;
+      --button-edit-shadow-hover-inset: rgba(255, 255, 255, 0.5) 0px -3px 6px 2px inset, rgba(0, 0, 0, 0.2) 0px -2px 2px 4px inset;
+      --button-edit-text-shadow: rgba(255, 255, 255, 0.5) 0px 0px 5px;
+
+      --button-delete-bg: linear-gradient(160deg, rgb(150, 100, 100), rgb(130, 80, 80), rgb(110, 60, 60), rgb(130, 80, 80), rgb(150, 100, 100));
+      --button-delete-border: rgb(110, 60, 60);
+      --button-delete-color: #fff;
+      --button-delete-shadow-inset: rgba(255, 255, 255, 0.4) 0px -2px 5px 1px inset, rgba(0, 0, 0, 0.1) 0px -1px 1px 3px inset;
+      --button-delete-shadow-hover-inset: rgba(255, 255, 255, 0.5) 0px -3px 6px 2px inset, rgba(0, 0, 0, 0.2) 0px -2px 2px 4px inset;
+      --button-delete-text-shadow: rgba(255, 255, 255, 0.5) 0px 0px 5px;
+    }
+
+    /* Sleek Dark Mode Theme */
+    .theme-sleek-dark-mode {
+      --bg-primary: #1A1A1A;
+      --bg-secondary: #2B2B2B;
+      --bg-list-item: rgba(45, 45, 45, 0.7);
+      --bg-list-item-hover: rgba(60, 60, 60, 0.9);
+      --text-default: #E0E0E0;
+      --text-heading: #FFFFFF;
+      --text-info: #BBBBBB;
+      --border-primary: #404040;
+      --border-secondary: rgba(64, 64, 64, 0.5);
+      --border-list-item: rgba(80, 80, 80, 0.5);
+      --shadow-primary: rgba(0, 0, 0, 0.16) 0px 3px 6px 0px, rgba(0, 0, 0, 0.23) 0px 3px 6px 0px;
+
+      --shadow-button-inset-color-glow: rgba(255, 255, 255, 0.4);
+      --shadow-button-hover-inset-color-glow: rgba(255, 255, 255, 0.6);
+
+      --shadow-text-heading: rgba(255, 255, 255, 0.8) 0px 0px 10px;
+      --shadow-text-label: rgba(255, 255, 255, 0.4) 0px 0px 3px;
+      --shadow-text-item-name: rgba(255, 255, 255, 0.6) 0px 0px 5px;
+
+      --button-edit-bg: linear-gradient(160deg, rgb(40, 40, 60), rgb(50, 50, 70), rgb(60, 60, 80), rgb(50, 50, 70), rgb(40, 40, 60));
+      --button-edit-border: rgb(60, 60, 80);
+      --button-edit-color: rgb(180, 180, 255);
+      --button-edit-shadow-inset: rgba(30, 30, 50, 0.7) 0px -2px 5px 1px inset, rgba(180, 180, 255, 0.4) 0px -1px 1px 3px inset;
+      --button-edit-shadow-hover-inset: rgba(30, 30, 50, 0.8) 0px -3px 6px 2px inset, rgba(180, 180, 255, 0.6) 0px -2px 2px 4px inset;
+      --button-edit-text-shadow: rgba(180, 180, 255, 0.8) 0px 0px 10px;
+
+      --button-delete-bg: linear-gradient(160deg, rgb(60, 40, 40), rgb(70, 50, 50), rgb(80, 60, 60), rgb(70, 50, 50), rgb(60, 40, 40));
+      --button-delete-border: rgb(80, 60, 60);
+      --button-delete-color: rgb(255, 180, 180);
+      --button-delete-shadow-inset: rgba(50, 30, 30, 0.7) 0px -2px 5px 1px inset, rgba(255, 180, 180, 0.4) 0px -1px 1px 3px inset;
+      --button-delete-shadow-hover-inset: rgba(50, 30, 30, 0.8) 0px -3px 6px 2px inset, rgba(255, 180, 180, 0.6) 0px -2px 2px 4px inset;
+      --button-delete-text-shadow: rgba(255, 180, 180, 0.8) 0px 0px 10px;
+    }
+
+    /* Void Theme */
+    .theme-void {
+      --bg-primary: #101010;
+      --bg-secondary: #181818;
+      --bg-list-item: rgba(25, 25, 25, 0.7);
+      --bg-list-item-hover: rgba(35, 35, 35, 0.9);
+      --text-default: #C0C0C0;
+      --text-heading: #E0E0E0;
+      --text-info: #A0A0A0;
+      --border-primary: #202020;
+      --border-secondary: rgba(32, 32, 32, 0.5);
+      --border-list-item: rgba(40, 40, 40, 0.5);
+      --shadow-primary: rgba(0, 0, 0, 0.16) 0px 3px 6px 0px, rgba(0, 0, 0, 0.23) 0px 3px 6px 0px;
+
+      --shadow-button-inset-color-glow: rgba(224, 224, 224, 0.4);
+      --shadow-button-hover-inset-color-glow: rgba(224, 224, 224, 0.6);
+
+      --shadow-text-heading: rgba(224, 224, 224, 0.8) 0px 0px 10px;
+      --shadow-text-label: rgba(224, 224, 224, 0.4) 0px 0px 3px;
+      --shadow-text-item-name: rgba(224, 224, 224, 0.6) 0px 0px 5px;
+
+      --button-edit-bg: linear-gradient(160deg, rgb(20, 30, 40), rgb(30, 40, 50), rgb(40, 50, 60), rgb(30, 40, 50), rgb(20, 30, 40));
+      --button-edit-border: rgb(40, 50, 60);
+      --button-edit-color: rgb(160, 200, 240);
+      --button-edit-shadow-inset: rgba(10, 20, 30, 0.7) 0px -2px 5px 1px inset, rgba(160, 200, 240, 0.4) 0px -1px 1px 3px inset;
+      --button-edit-shadow-hover-inset: rgba(10, 20, 30, 0.8) 0px -3px 6px 2px inset, rgba(160, 200, 240, 0.6) 0px -2px 2px 4px inset;
+      --button-edit-text-shadow: rgba(160, 200, 240, 0.8) 0px 0px 10px;
+
+      --button-delete-bg: linear-gradient(160deg, rgb(40, 20, 20), rgb(50, 30, 30), rgb(60, 40, 40), rgb(50, 30, 30), rgb(40, 20, 20));
+      --button-delete-border: rgb(60, 40, 40);
+      --button-delete-color: rgb(240, 160, 160);
+      --button-delete-shadow-inset: rgba(30, 10, 10, 0.7) 0px -2px 5px 1px inset, rgba(240, 160, 160, 0.4) 0px -1px 1px 3px inset;
+      --button-delete-shadow-hover-inset: rgba(30, 10, 10, 0.8) 0px -3px 6px 2px inset, rgba(240, 160, 160, 0.6) 0px -2px 2px 4px inset;
+      --button-delete-text-shadow: rgba(240, 160, 160, 0.8) 0px 0px 10px;
+    }
+
+    /* Forest Green Theme */
+    .theme-forest {
+      --bg-primary: #1a2a2a;
+      --bg-secondary: #2a3a2a;
+      --bg-list-item: rgba(40, 60, 40, 0.5);
+      --bg-list-item-hover: rgba(50, 70, 50, 0.7);
+      --text-default: #c0d0c0;
+      --text-heading: #80c080;
+      --text-info: #90b090;
+      --border-primary: #507050;
+      --border-secondary: rgba(80, 112, 80, 0.5);
+      --border-list-item: rgba(100, 120, 100, 0.5);
+      --shadow-primary: rgba(0, 0, 0, 0.16) 0px 3px 6px 0px, rgba(0, 0, 0, 0.23) 0px 3px 6px 0px;
+
+      --shadow-button-inset-color-glow: rgba(128, 192, 128, 0.4);
+      --shadow-button-hover-inset-color-glow: rgba(128, 192, 128, 0.6);
+
+      --shadow-text-heading: rgba(128, 192, 128, 0.8) 0px 0px 10px;
+      --shadow-text-label: rgba(128, 192, 128, 0.4) 0px 0px 3px;
+      --shadow-text-item-name: rgba(128, 192, 128, 0.6) 0px 0px 5px;
+
+      --button-edit-bg: linear-gradient(160deg, rgb(30, 40, 30), rgb(40, 50, 40), rgb(50, 60, 50), rgb(40, 50, 40), rgb(30, 40, 30));
+      --button-edit-border: rgb(50, 60, 50);
+      --button-edit-color: rgb(150, 200, 150);
+      --button-edit-shadow-inset: rgba(20, 30, 20, 0.7) 0px -2px 5px 1px inset, rgba(150, 200, 150, 0.4) 0px -1px 1px 3px inset;
+      --button-edit-shadow-hover-inset: rgba(20, 30, 20, 0.8) 0px -3px 6px 2px inset, rgba(150, 200, 150, 0.6) 0px -2px 2px 4px inset;
+      --button-edit-text-shadow: rgba(150, 200, 150, 0.8) 0px 0px 10px;
+
+      --button-delete-bg: linear-gradient(160deg, rgb(50, 30, 30), rgb(60, 40, 40), rgb(70, 50, 50), rgb(60, 40, 40), rgb(50, 30, 30));
+      --button-delete-border: rgb(70, 50, 50);
+      --button-delete-color: rgb(200, 150, 150);
+      --button-delete-shadow-inset: rgba(40, 20, 20, 0.7) 0px -2px 5px 1px inset, rgba(200, 150, 150, 0.4) 0px -1px 1px 3px inset;
+      --button-delete-shadow-hover-inset: rgba(40, 20, 20, 0.8) 0px -3px 6px 2px inset, rgba(200, 150, 150, 0.6) 0px -2px 2px 4px inset;
+      --button-delete-text-shadow: rgba(200, 150, 150, 0.8) 0px 0px 10px;
+    }
+
+
     /* Global styles for the popup - Adjust widths/padding as needed */
     body {
-      width: 300px;
+      width: 300px; /* Default width for desktop */
+      height: auto; /* Allow height to adjust to content */
+      max-height: 600px; /* Max height for desktop to prevent overly long popups */
       padding: 10px;
-      font-family: 'Jura', sans-serif; /* Applied Jura font */
-      background-color: #0A0517; /* Dark purple/blue background */
-      color: #ABB2BF; /* Default text color */
-      overflow-x: hidden; /* Prevent horizontal scroll */
+      font-family: 'Jura', sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-default);
+      overflow-x: hidden;
+      overflow-y: auto; /* Explicitly allow body to scroll vertically on desktop */
+      display: flex; /* Use flexbox for overall layout */
+      flex-direction: column; /* Stack content vertically */
+      box-sizing: border-box; /* Include padding in height/width */
     }
     h2, h3, h4 {
-        color: rgb(142, 103, 255); /* Glowy purple color */
-        text-shadow: rgba(142, 103, 255, 0.8) 0px 0px 10px; /* Glow effect */
-        border-bottom: 1px solid rgba(45, 22, 87, 0.5); /* Softer border */
+        color: var(--text-heading);
+        text-shadow: var(--shadow-text-heading);
+        border-bottom: 1px solid var(--border-secondary);
         padding-bottom: 5px;
         margin-top: 15px;
         margin-bottom: 10px;
         font-weight: 700;
         letter-spacing: 0.5px;
-        display: flex; /* Make h3 a flex container */
-        justify-content: space-between; /* Space out title and button */
-        align-items: center; /* Vertically align items */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
     h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 24px; }
     h3 { font-size: 18px; }
     h4 { font-size: 16px; }
 
+    /* Text bulkiness fix */
+    body, label, input[type="text"], textarea, button, select {
+        font-weight: 400;
+    }
+    h2, h3, h4, .item-name, .fancy-button {
+        font-weight: 700;
+    }
+    .item-value {
+        font-weight: 400;
+    }
+
+
     /* Custom Scrollbar Styles for Webkit browsers */
     ::-webkit-scrollbar {
       width: 8px;
-      height: 8px; /* For horizontal scrollbars */
+      height: 8px;
     }
 
     ::-webkit-scrollbar-track {
-      background: #1A0B3B; /* Darker track */
+      background: var(--bg-secondary);
       border-radius: 10px;
     }
 
     ::-webkit-scrollbar-thumb {
-      background: rgb(45, 22, 87); /* Thumb color matching the theme */
+      background: var(--border-primary);
       border-radius: 10px;
-      border: 1px solid rgb(26, 11, 59); /* Border for thumb */
+      border: 1px solid var(--bg-secondary);
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background: rgb(61, 29, 104); /* Lighter on hover */
+      background: rgb(61, 29, 104);
     }
 
     /* Styling for lists */
-    .data-list { /* Generic class for list containers */
-      margin-bottom: 10px;
-      max-height: 187.5px; /* Increased by 25% from 150px */
-      overflow-y: auto;
+    .data-list {
+      margin-bottom: 5px; /* Reduced from 10px */
+      max-height: 187.5px; /* Re-introduce max-height for desktop lists */
+      flex-grow: 0; /* Prevent lists from growing excessively on desktop */
+      overflow-y: auto; /* Re-enable individual scrollbars on desktop */
+      min-height: 50px; /* Ensure lists are visible even if empty */
       padding: 8px;
-      border: 1px solid rgb(45, 22, 87); /* Border from button */
-      border-radius: 5.28px; /* Rounded corners from button */
-      background-image: linear-gradient(160deg, rgba(10, 5, 23, 0.7), rgba(26, 11, 59, 0.7), rgba(45, 22, 87, 0.7), rgba(26, 11, 59, 0.7), rgba(10, 5, 23, 0.7)); /* Subtle gradient */
-      box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px 0px, rgba(0, 0, 0, 0.23) 0px 3px 6px 0px; /* Outer shadow */
-      backdrop-filter: blur(5px); /* Optional: subtle blur for glassmorphism effect */
-      -webkit-backdrop-filter: blur(5px); /* For Safari */
+      border: 1px solid var(--border-primary);
+      border-radius: 5.28px;
+      background-image: var(--bg-list-container);
+      box-shadow: var(--shadow-primary);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
     }
-    .data-list-item { /* Generic class for list items */
+    .data-list-item {
       padding: 8px;
       margin-bottom: 5px;
-      border-bottom: 1px solid rgba(62, 68, 81, 0.5); /* Softer separator */
+      border-bottom: 1px solid var(--border-list-item);
       display: flex;
-      flex-wrap: wrap; /* Allow content to wrap */
-      /* Removed justify-content: space-between; and align-items: center; from here
-         as the item-header will handle the main row layout */
-      background-color: rgba(45, 22, 87, 0.3); /* Slightly lighter background for items */
-      border-radius: 4px; /* Slightly less rounded than container */
+      flex-wrap: wrap;
+      background-color: var(--bg-list-item);
+      border-radius: 4px;
       transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
-      cursor: pointer; /* Indicate clickable */
+      cursor: pointer;
     }
     .data-list-item:last-child {
-      border-bottom: none; /* No border on last item */
+      border-bottom: none;
       margin-bottom: 0;
     }
     .data-list-item:hover {
-      background-color: rgba(45, 22, 87, 0.5); /* Slightly more opaque on hover */
-      transform: translateY(-1px); /* Subtle lift effect */
+      background-color: var(--bg-list-item-hover);
+      transform: translateY(-1px);
     }
     .data-list-item.dragging-invisible {
-        opacity: 0.0; /* Make dragged item almost invisible */
+        opacity: 0.0;
     }
     body.dragging-active {
-        cursor: grabbing; /* Change cursor when dragging is active */
+        cursor: grabbing;
     }
 
     .item-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        width: 100%; /* Take full width of parent */
-        margin-bottom: 5px; /* Space between header and value */
+        width: 100%;
+        margin-bottom: 5px;
     }
 
     .item-name {
         font-weight: 700;
-        color: rgb(142, 103, 255); /* Glowy purple for names */
-        text-shadow: rgba(142, 103, 255, 0.6) 0px 0px 5px; /* Subtle glow */
+        color: var(--text-heading);
+        text-shadow: var(--shadow-text-item-name);
         margin-right: 10px;
-        flex-shrink: 1; /* Allow shrinking */
-        word-break: break-word; /* Allow long names to break words */
-        flex-basis: auto; /* Allow content to determine its own basis */
-        min-width: 0; /* Allow content to shrink */
-        font-size: 1.1em; /* Slightly larger font for prominence */
+        flex-shrink: 1;
+        word-break: break-word;
+        flex-basis: auto;
+        min-width: 0;
+        font-size: 1.1em;
     }
     .item-value {
-        flex-grow: 1; /* Allow value to take available space */
-        color: #ABB2BF;
+        flex-grow: 1;
+        color: var(--text-default);
         font-size: 0.9em;
-        white-space: nowrap; /* Truncate long lines */
-        overflow: hidden; /* Hide overflow */
-        text-overflow: ellipsis; /* Show ellipsis for truncated text */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         margin-right: 10px;
-        min-width: 0; /* Allow flex item to shrink below its content size */
-        flex-basis: 100%; /* Take full width below the name */
-        margin-top: 0; /* No extra space from name if it wraps, as it's a new line */
+        min-width: 0;
+        flex-basis: 100%;
+        margin-top: 0;
     }
 
     /* Add/Edit Form Area styles */
     .form-area {
-      background-image: linear-gradient(160deg, rgba(10, 5, 23, 0.8), rgba(26, 11, 59, 0.8), rgba(45, 22, 87, 0.8), rgba(26, 11, 59, 0.8), rgba(10, 5, 23, 0.8));
-      border: 1px solid rgb(45, 22, 87);
+      background-image: var(--bg-form-area);
+      border: 1px solid var(--border-primary);
       border-radius: 5.28px;
       padding: 15px;
       margin-top: 15px;
-      box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px 0px, rgba(0, 0, 0, 0.23) 0px 3px 6px 0px;
-      display: none; /* Hidden by default */
+      box-shadow: var(--shadow-primary);
+      display: none;
     }
     .form-area label {
       display: block;
       margin-bottom: 5px;
       margin-top: 10px;
-      color: rgb(142, 103, 255);
+      color: var(--text-heading);
       font-weight: 700;
-      text-shadow: rgba(142, 103, 255, 0.4) 0px 0px 3px;
+      text-shadow: var(--shadow-text-label);
     }
     .form-area input[type="text"],
-    .form-area textarea {
-      width: 100%; /* Changed to 100% to fix overflow */
+    .form-area textarea,
+    .form-area input[type="color"],
+    .form-area select {
+      width: 100%;
       padding: 8px;
       margin-bottom: 10px;
-      border: 1px solid rgb(45, 22, 87);
-      border-radius: 4px; /* Slightly rounded inputs */
-      background-color: #1A0B3B; /* Darker input background */
-      color: #ABB2BF;
+      border: 1px solid var(--border-primary);
+      border-radius: 4px;
+      background-color: var(--bg-secondary);
+      color: var(--text-default);
       font-family: 'Jura', sans-serif;
       font-size: 14px;
-      box-sizing: border-box; /* Include padding in width */
+      box-sizing: border-box;
     }
     .form-area textarea {
-      resize: vertical; /* Allow vertical resizing */
+      resize: vertical;
       min-height: 60px;
     }
+    .form-area input[type="color"] {
+        height: 35px;
+        padding: 2px;
+    }
 
-    /* Fancy Button Style (from My Chats button) */
+    /* Fancy Button Style */
     .fancy-button {
         align-items: center;
-        background-image: linear-gradient(160deg, rgb(10, 5, 23), rgb(26, 11, 59), rgb(45, 22, 87), rgb(26, 11, 59), rgb(10, 5, 23));
+        background-image: linear-gradient(160deg, var(--bg-primary), var(--bg-secondary), var(--border-primary), var(--bg-secondary), var(--bg-primary));
         background-position: 50% 50%;
         background-size: cover;
-        block-size: 40px; /* Slightly smaller for popup */
-        border: 1px solid rgb(45, 22, 87);
+        block-size: 40px;
+        border: 1px solid var(--border-primary);
         border-radius: 5.28px;
         box-sizing: border-box;
-        box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px 0px, rgba(0, 0, 0, 0.23) 0px 3px 6px 0px, rgba(17, 7, 38, 0.7) 0px -2px 5px 1px inset, rgba(142, 103, 255, 0.4) 0px -1px 1px 3px inset;
-        color: rgb(142, 103, 255);
+        color: var(--text-heading);
         cursor: pointer;
         display: flex;
         flex-direction: row;
         font-family: 'Jura', sans-serif;
-        font-size: 15px; /* Slightly smaller font for popup */
+        font-size: 15px;
         font-weight: 700;
-        height: 40px; /* Slightly smaller for popup */
+        height: 40px;
         justify-content: center;
         letter-spacing: 0.88px;
-        line-height: 20px; /* Adjusted line height */
-        padding-inline-end: 20px; /* Adjusted padding */
-        padding-inline-start: 20px; /* Adjusted padding */
+        line-height: 20px;
+        padding-inline-end: 20px;
+        padding-inline-start: 20px;
         text-decoration-line: none;
-        text-shadow: rgba(142, 103, 255, 0.8) 0px 0px 10px;
+        text-shadow: var(--shadow-text-heading);
         transition: all 0.2s ease-in-out;
         -webkit-font-smoothing: antialiased;
-        -webkit-text-fill-color: rgb(142, 103, 255);
-        width: auto; /* Allow buttons to size based on content */
-        min-width: 80px; /* Minimum width for small buttons */
+        -webkit-text-fill-color: var(--text-heading);
+        width: auto;
+        min-width: 80px;
     }
 
     .fancy-button:hover {
         transform: translateY(-2px);
-        box-shadow: rgba(0, 0, 0, 0.2) 0px 5px 10px 0px, rgba(0, 0, 0, 0.3) 0px 5px 10px 0px, rgba(17, 7, 38, 0.8) 0px -3px 6px 2px inset, rgba(142, 103, 255, 0.6) 0px -2px 2px 4px inset;
+        box-shadow: rgba(0, 0, 0, 0.2) 0px 5px 10px 0px, rgba(0, 0, 0, 0.3) 0px 5px 10px 0px, var(--shadow-button-hover-inset);
     }
     .fancy-button:active {
         transform: translateY(0);
-        box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px 0px, rgba(0, 0, 0, 0.23) 0px 3px 6px 0px, rgba(17, 7, 38, 0.7) 0px -2px 5px 1px inset, rgba(142, 103, 255, 0.4) 0px -1px 1px 3px inset;
     }
 
     /* Specific button adjustments */
     .add-button-container {
-      /* Removed flex properties as it's now part of h3 */
       margin-top: 0;
       margin-bottom: 0;
     }
     .add-button {
-      width: 30px; /* Matched width of delete/edit buttons */
-      height: 28px; /* Matched height of delete/edit buttons */
-      border-radius: 5.28px; /* Rounded rectangle shape */
-      font-size: 16px; /* Smaller font size */
-      padding: 0; /* Remove padding */
-      line-height: 1; /* Center the plus sign vertically */
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      font-size: 20px;
+      padding: 0;
+      line-height: 1;
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-left: 10px; /* Space from the heading text */
+      margin-left: 10px;
+      background-image: linear-gradient(160deg, var(--bg-primary), var(--bg-secondary), var(--border-primary), var(--bg-secondary), var(--bg-primary));
+      border: 1px solid var(--border-primary);
+      box-sizing: border-box;
+      color: var(--text-heading);
+      text-shadow: var(--shadow-text-heading);
+      transition: all 0.2s ease-in-out;
+    }
+
+    .add-button:hover {
+        transform: translateY(-2px);
+        box-shadow: rgba(0, 0, 0, 0.2) 0px 5px 10px 0px, rgba(0, 0, 0, 0.3) 0px 5px 10px 0px, var(--shadow-button-hover-inset);
+    }
+    .add-button:active {
+        transform: translateY(0);
     }
 
     .action-buttons {
         display: flex;
-        gap: 5px; /* Space between edit/delete buttons */
-        flex-shrink: 0; /* Prevent shrinking */
-        margin-left: auto; /* Push buttons to the right */
+        gap: 5px;
+        flex-shrink: 0;
+        margin-left: auto;
     }
-    .action-buttons.hidden { /* New rule for hiding buttons */
+    .action-buttons.hidden {
         display: none;
     }
-    .action-buttons .edit-button,
-    .action-buttons .delete-button {
-        font-size: 12px; /* Smaller font for action buttons */
-        height: 28px; /* Smaller height for action buttons */
-        line-height: 1;
-        padding: 4px 8px; /* Slightly reduced padding */
-        min-width: unset; /* Remove min-width for these */
-        width: auto;
-        border-radius: 6px; /* Slightly more rounded corners */
+    .action-buttons .icon-button {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0;
+        font-size: 14px;
+        border-radius: 6px;
+        background: none;
+        border: none;
+        box-shadow: none;
+        text-shadow: none;
+        transition: transform 0.2s ease-in-out, background-color 0.2s ease;
     }
-    .action-buttons .delete-button {
-        background-image: linear-gradient(160deg, rgb(23, 5, 10), rgb(59, 11, 26), rgb(87, 22, 45), rgb(59, 11, 26), rgb(23, 5, 10)); /* Redder gradient for delete */
-        border-color: rgb(87, 22, 45);
-        color: rgb(255, 103, 142); /* Reddish glow */
-        text-shadow: rgba(255, 103, 142, 0.8) 0px 0px 10px;
-        box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px 0px, rgba(0, 0, 0, 0.23) 0px 3px 6px 0px, rgba(38, 7, 17, 0.7) 0px -2px 5px 1px inset, rgba(255, 103, 142, 0.4) 0px -1px 1px 3px inset;
+
+    .action-buttons .icon-button:hover {
+        transform: translateY(-1px);
+        background-color: rgba(255, 255, 255, 0.1);
+        box-shadow: none;
     }
-    .action-buttons .delete-button:hover {
-        box-shadow: rgba(0, 0, 0, 0.2) 0px 5px 10px 0px, rgba(0, 0, 0, 0.3) 0px 5px 10px 0px, rgba(38, 7, 17, 0.8) 0px -3px 6px 2px inset, rgba(255, 103, 142, 0.6) 0px -2px 2px 4px inset;
+    .action-buttons .icon-button:active {
+        transform: translateY(0);
+        background-color: rgba(255, 255, 255, 0.05);
+        box-shadow: none;
+    }
+
+    .action-buttons .delete-button {
+        color: var(--button-delete-color);
     }
 
     .action-buttons .edit-button {
-        background-image: linear-gradient(160deg, rgb(5, 10, 23), rgb(11, 26, 59), rgb(22, 45, 87), rgb(11, 26, 59), rgb(5, 10, 23)); /* Darker blue gradient for edit */
-        border-color: rgb(22, 45, 87);
-        color: rgb(103, 142, 255); /* Blue glow */
-        text-shadow: rgba(103, 142, 255, 0.8) 0px 0px 10px;
-        box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px 0px, rgba(0, 0, 0, 0.23) 0px 3px 6px 0px, rgba(7, 17, 38, 0.7) 0px -2px 5px 1px inset, rgba(103, 142, 255, 0.4) 0px -1px 1px 3px inset;
-    }
-    .action-buttons .edit-button:hover {
-        box-shadow: rgba(0, 0, 0, 0.2) 0px 5px 10px 0px, rgba(0, 0, 0, 0.3) 0px 5px 10px 0px, rgba(7, 17, 38, 0.8) 0px -3px 6px 2px inset, rgba(103, 142, 255, 0.6) 0px -2px 2px 4px inset;
+        color: var(--button-edit-color);
     }
 
 
@@ -268,220 +497,420 @@
     .form-area button[type="button"] {
         margin-top: 15px;
         margin-right: 10px;
-        height: 35px; /* Slightly smaller height */
-        font-size: 14px; /* Slightly smaller font */
-        padding-inline-end: 15px; /* Reduced padding */
-        padding-inline-start: 15px; /* Reduced padding */
-        min-width: unset; /* Allow to shrink to fit */
+        height: 35px;
+        font-size: 14px;
+        padding-inline-end: 15px;
+        padding-inline-start: 15px;
+        min-width: unset;
     }
     .form-area form {
         display: flex;
-        flex-wrap: wrap; /* Allow elements to wrap */
-        justify-content: flex-start; /* Align items to the start */
+        flex-wrap: wrap;
+        justify-content: flex-start;
     }
     .form-area label,
     .form-area input[type="text"],
-    .form-area textarea {
-        flex-basis: 100%; /* Ensure labels and inputs take full width */
+    .form-area textarea,
+    .form-area input[type="color"],
+    .form-area select {
+        flex-basis: 100%;
     }
 
 
     .no-items-message {
         text-align: center;
-        color: #61afef; /* A lighter blue for informational text */
+        color: var(--text-info);
         margin-top: 15px;
         font-style: italic;
     }
 
     /* Custom Message Box Styling */
     #customMessageBox {
-      display: none; /* Hidden by default, controlled by JS */
-      position: fixed; /* Stays in place */
+      display: none;
+      position: fixed;
       left: 0;
       top: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+      background-color: rgba(0, 0, 0, 0.7);
       justify-content: center;
       align-items: center;
-      z-index: 1000; /* On top of everything */
+      z-index: 1000;
     }
 
     #messageBoxContent {
-      background-image: linear-gradient(160deg, rgb(10, 5, 23), rgb(26, 11, 59), rgb(45, 22, 87), rgb(26, 11, 59), rgb(10, 5, 23));
-      border: 1px solid rgb(45, 22, 87);
+      background-image: var(--bg-list-container);
+      border: 1px solid var(--border-primary);
       border-radius: 5.28px;
       padding: 20px;
       text-align: center;
-      box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px 0px, rgba(0, 0, 0, 0.23) 0px 3px 6px 0px;
-      color: #ABB2BF;
+      box-shadow: var(--shadow-primary);
+      color: var(--text-default);
       max-width: 80%;
     }
 
     #messageBoxText {
       margin-bottom: 20px;
       font-size: 16px;
-      color: rgb(142, 103, 255); /* Glowy purple for message */
-      text-shadow: rgba(142, 103, 255, 0.8) 0px 0px 5px;
+      color: var(--text-heading);
+      text-shadow: var(--shadow-text-heading);
     }
 
     #messageBoxButtons {
-      display: flex; /* Use flexbox for buttons */
-      justify-content: center; /* Center buttons horizontally */
-      gap: 10px; /* Space between buttons */
+      display: flex;
+      justify-content: center;
+      gap: 10px;
     }
     #messageBoxButtons button {
-      /* Inherits .fancy-button styles */
-      margin: 0; /* Reset margin from general button styles */
+      margin: 0;
+    }
+
+    /* New styles for view management */
+    .view-container {
+        display: none;
+        flex-grow: 1; /* Allow main/settings view to take remaining space */
+        flex-direction: column; /* Stack sections vertically */
+        overflow-y: visible; /* Changed to visible for desktop to prevent extra scrollbar */
+    }
+    .view-container.active {
+        display: flex; /* Changed to flex for flexbox layout */
+    }
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        flex-shrink: 0; /* Prevent top bar from shrinking */
+    }
+    .top-bar h2 {
+        margin: 0;
+    }
+
+    .data-section {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 15px;
+      flex-shrink: 0; /* Prevent sections from shrinking too much */
+    }
+
+    /* Mobile-specific adjustments using a media query for touch devices */
+    @media (pointer: coarse) {
+        body {
+            width: 100vw; /* Full viewport width for mobile */
+            height: 100vh; /* Full viewport height for mobile */
+            max-width: none; /* Remove max width constraint */
+            max-height: none; /* Remove max height constraint */
+            padding: 15px; /* Slightly more padding for mobile */
+            font-size: 16px; /* Base font size increase */
+            overflow-y: auto; /* Re-enable body scrollbar on mobile */
+        }
+
+        h2 { font-size: 28px; }
+        h3 { font-size: 22px; }
+        h4 { font-size: 20px; }
+
+        .data-list {
+            margin-bottom: 8px; /* Adjusted for mobile */
+            max-height: unset; /* Remove fixed max-height on mobile */
+            flex-grow: 1; /* Allow lists to grow and take available space on mobile */
+            overflow-y: auto; /* Re-enable individual scrollbars on mobile */
+        }
+
+        .data-list-item {
+            padding: 12px; /* Increase padding for bigger tap targets */
+            margin-bottom: 8px; /* More space between items */
+        }
+
+        .item-name {
+            font-size: 1.2em; /* Bigger name text */
+        }
+        .item-value {
+            font-size: 1em; /* Bigger value text */
+        }
+
+        .form-area label {
+            font-size: 18px; /* Bigger labels */
+        }
+        .form-area input[type="text"],
+        .form-area textarea,
+        .form-area input[type="color"],
+        .form-area select {
+            padding: 12px; /* Bigger input fields */
+            font-size: 16px;
+            min-height: 45px; /* Ensure minimum height for textareas */
+        }
+        .form-area textarea {
+            min-height: 90px; /* Larger min-height for textareas on mobile */
+        }
+
+        .fancy-button, .add-button {
+            height: 50px; /* Bigger buttons */
+            font-size: 18px;
+            padding-inline-end: 25px;
+            padding-inline-start: 25px;
+        }
+        .add-button {
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+        }
+        .action-buttons .icon-button {
+            width: 38px;
+            height: 38px;
+            font-size: 18px;
+        }
+
+        /* Adjust message box for mobile */
+        #messageBoxContent {
+            padding: 30px;
+            max-width: 90%;
+        }
+        #messageBoxText {
+            font-size: 20px;
+        }
+
+        .view-container {
+            overflow-y: auto; /* Enable main scrollbar on mobile */
+        }
     }
   </style>
 </head>
 <body>
-  <h2>Shoddy API Manager</h2>
-
-  <!-- Prompts Section -->
-  <div class="data-section" id="promptArea">
-    <h3>Prompts
-      <div class="add-button-container">
-         <button class="add-button fancy-button" id="addPromptButton">+</button>
-      </div>
-    </h3>
-    <div class="data-list" id="promptsList">
-      <!-- Saved prompts will be listed here by popup.js -->
-      <p class="no-items-message" id="noPromptsMessage">No prompts saved yet.</p>
-    </div>
-
-    <!-- --- Add/Edit Prompt Form Area --- -->
-    <div class="form-area" id="promptFormArea">
-        <h4>Add New Prompt</h4>
-        <form id="promptForm">
-            <label for="promptNameInput">Name:</label>
-            <input type="text" id="promptNameInput" required>
-
-            <label for="promptValueInput">Prompt Text:</label>
-            <textarea id="promptValueInput" required></textarea>
-
-            <button type="submit" class="fancy-button" id="savePromptButton">Save Prompt</button>
-            <button type="button" class="fancy-button" id="cancelPromptButton">Cancel</button>
-        </form>
-    </div>
+  <div class="top-bar">
+    <h2 id="mainHeading">Shoddy API Manager</h2>
+    <button class="fancy-button" id="settingsButton">Settings</button>
+    <button class="fancy-button" id="backButton" style="display: none;">Back</button>
   </div>
 
-  <!-- Models Section -->
-  <div class="data-section" id="modelArea">
-    <h3>Models
-      <div class="add-button-container">
-         <button class="add-button fancy-button" id="addModelButton">+</button>
+  <!-- Main View -->
+  <div id="mainView" class="view-container active">
+    <!-- Prompts Section -->
+    <div class="data-section" id="promptArea">
+      <h3>Prompts
+        <div class="add-button-container">
+           <button class="add-button fancy-button" id="addPromptButton"><i class="fas fa-plus"></i></button>
+        </div>
+      </h3>
+      <div class="data-list" id="promptsList">
+        <!-- Saved prompts will be listed here by popup.js -->
+        <p class="no-items-message" id="noPromptsMessage">No prompts saved yet.</p>
       </div>
-    </h3>
-    <div class="data-list" id="modelsList">
-      <!-- Saved models will be listed here by popup.js -->
-      <p class="no-items-message" id="noModelsMessage">No models saved yet.</p>
-    </div>
 
-    <!-- --- Add/Edit Model Form Area --- -->
-    <div class="form-area" id="modelFormArea">
-        <h4>Add New Model</h4>
-        <form id="modelForm">
-            <label for="modelValueInput">Model Name:</label>
-            <input type="text" id="modelValueInput" required>
+      <!-- Add/Edit Prompt Form Area -->
+      <div class="form-area" id="promptFormArea">
+          <h4>Add New Prompt</h4>
+          <form id="promptForm">
+              <label for="promptNameInput">Name:</label>
+              <input type="text" id="promptNameInput" required>
 
-            <button type="submit" class="fancy-button" id="saveModelButton">Save Model</button>
-            <button type="button" class="fancy-button" id="cancelModelButton">Cancel</button>
-        </form>
-    </div>
-  </div>
+              <label for="promptValueInput">Prompt Text:</label>
+              <textarea id="promptValueInput" required></textarea>
 
-  <!-- Proxy URLs Section -->
-  <div class="data-section" id="proxyUrlArea">
-    <h3>Proxy URLs
-      <div class="add-button-container">
-         <button class="add-button fancy-button" id="addProxyUrlButton">+</button>
+              <button type="submit" class="fancy-button" id="savePromptButton">Save Prompt</button>
+              <button type="button" class="fancy-button" id="cancelPromptButton">Cancel</button>
+          </form>
       </div>
-    </h3>
-    <div class="data-list" id="proxyUrlsList">
-      <!-- Saved proxy URLs will be listed here by popup.js -->
-      <p class="no-items-message" id="noProxyUrlsMessage">No proxy URLs saved yet.</p>
     </div>
 
-    <!-- --- Add/Edit Proxy URL Form Area --- -->
-    <div class="form-area" id="proxyUrlFormArea">
-        <h4>Add New Proxy URL</h4>
-        <form id="proxyUrlForm">
-            <label for="proxyUrlValueInput">Proxy URL:</label>
-            <input type="text" id="proxyUrlValueInput" required>
-
-            <button type="submit" class="fancy-button" id="saveProxyUrlButton">Save Proxy URL</button>
-            <button type="button" class="fancy-button" id="cancelProxyUrlButton">Cancel</button>
-        </form>
-    </div>
-  </div>
-
-  <!-- API Keys Section -->
-  <div class="data-section" id="apiKeyArea">
-    <h3>API Keys
-      <div class="add-button-container">
-         <button class="add-button fancy-button" id="addApiKeyButton">+</button>
+    <!-- Models Section -->
+    <div class="data-section" id="modelArea">
+      <h3>Models
+        <div class="add-button-container">
+           <button class="add-button fancy-button" id="addModelButton"><i class="fas fa-plus"></i></button>
+        </div>
+      </h3>
+      <div class="data-list" id="modelsList">
+        <!-- Saved models will be listed here by popup.js -->
+        <p class="no-items-message" id="noModelsMessage">No models saved yet.</p>
       </div>
-    </h3>
-    <div class="data-list" id="apiKeysList">
-      <!-- Saved API keys will be listed here by popup.js -->
-      <p class="no-items-message" id="noApiKeysMessage">No API Keys saved yet.</p>
-    </div>
 
-    <!-- --- Add/Edit API Key Form Area --- -->
-    <div class="form-area" id="apiKeyFormArea">
-        <h4>Add New API Key</h4>
-        <form id="apiKeyForm">
-            <label for="apiKeyNameInput">Name:</label>
-            <input type="text" id="apiKeyNameInput" required>
+      <!-- Add/Edit Model Form Area -->
+      <div class="form-area" id="modelFormArea">
+          <h4>Add New Model</h4>
+          <form id="modelForm">
+              <label for="modelValueInput">Model Name:</label>
+              <input type="text" id="modelValueInput" required>
 
-            <label for="apiKeyValueInput">Key Value:</label>
-            <input type="text" id="apiKeyValueInput" required>
-
-            <button type="submit" class="fancy-button" id="saveApiKeyButton">Save Key</button>
-            <button type="button" class="fancy-button" id="cancelApiKeyButton">Cancel</button>
-        </form>
-    </div>
-  </div>
-
-  <!-- Presets Section -->
-  <div class="data-section" id="presetsArea">
-    <h3>Presets
-      <div class="add-button-container">
-         <button class="add-button fancy-button" id="addPresetButton">+</button>
+              <button type="submit" class="fancy-button" id="saveModelButton">Save Model</button>
+              <button type="button" class="fancy-button" id="cancelModelButton">Cancel</button>
+          </form>
       </div>
-    </h3>
-    <div class="data-list" id="presetsList">
-      <!-- Saved presets will be listed here by popup.js -->
-      <p class="no-items-message" id="noPresetsMessage">No presets saved yet.</p>
     </div>
 
-    <!-- --- Add/Edit Preset Form Area --- -->
-    <div class="form-area" id="presetFormArea">
-        <h4>Add New Preset</h4>
-        <form id="presetForm">
-            <label for="presetNameInput">Name:</label>
-            <input type="text" id="presetNameInput" required>
+    <!-- Proxy URLs Section -->
+    <div class="data-section" id="proxyUrlArea">
+      <h3>Proxy URLs
+        <div class="add-button-container">
+           <button class="add-button fancy-button" id="addProxyUrlButton"><i class="fas fa-plus"></i></button>
+        </div>
+      </h3>
+      <div class="data-list" id="proxyUrlsList">
+        <!-- Saved proxy URLs will be listed here by popup.js -->
+        <p class="no-items-message" id="noProxyUrlsMessage">No proxy URLs saved yet.</p>
+      </div>
 
-            <label for="presetPromptInput">Custom Prompt:</label>
-            <textarea id="presetPromptInput" required></textarea>
+      <!-- Add/Edit Proxy URL Form Area -->
+      <div class="form-area" id="proxyUrlFormArea">
+          <h4>Add New Proxy URL</h4>
+          <form id="proxyUrlForm">
+              <label for="proxyUrlValueInput">Proxy URL:</label>
+              <input type="text" id="proxyUrlValueInput" required>
 
-            <label for="presetModelInput">Model:</label>
-            <input type="text" id="presetModelInput">
-
-            <label for="presetProxyInput">Proxy URL:</label>
-            <input type="text" id="presetProxyInput">
-
-            <label for="presetApiKeyInput">API Key:</label>
-            <input type="text" id="presetApiKeyInput">
-
-
-            <button type="submit" class="fancy-button" id="savePresetButton">Save Preset</button>
-            <button type="button" class="fancy-button" id="cancelPresetButton">Cancel</button>
-        </form>
+              <button type="submit" class="fancy-button" id="saveProxyUrlButton">Save Proxy URL</button>
+              <button type="button" class="fancy-button" id="cancelProxyUrlButton">Cancel</button>
+          </form>
+      </div>
     </div>
-  </div>
+
+    <!-- API Keys Section -->
+    <div class="data-section" id="apiKeyArea">
+      <h3>API Keys
+        <div class="add-button-container">
+           <button class="add-button fancy-button" id="addApiKeyButton"><i class="fas fa-plus"></i></button>
+        </div>
+      </h3>
+      <div class="data-list" id="apiKeysList">
+        <!-- Saved API keys will be listed here by popup.js -->
+        <p class="no-items-message" id="noApiKeysMessage">No API Keys saved yet.</p>
+      </div>
+
+      <!-- Add/Edit API Key Form Area -->
+      <div class="form-area" id="apiKeyFormArea">
+          <h4>Add New API Key</h4>
+          <form id="apiKeyForm">
+              <label for="apiKeyNameInput">Name:</label>
+              <input type="text" id="apiKeyNameInput" required>
+
+              <label for="apiKeyValueInput">Key Value:</label>
+              <input type="text" id="apiKeyValueInput" required>
+
+              <button type="submit" class="fancy-button" id="saveApiKeyButton">Save Key</button>
+              <button type="button" class="fancy-button" id="cancelApiKeyButton">Cancel</button>
+          </form>
+      </div>
+    </div>
+
+    <!-- Presets Section -->
+    <div class="data-section" id="presetsArea">
+      <h3>Presets
+        <div class="add-button-container">
+           <button class="add-button fancy-button" id="addPresetButton"><i class="fas fa-plus"></i></button>
+        </div>
+      </h3>
+      <div class="data-list" id="presetsList">
+        <!-- Saved presets will be listed here by popup.js -->
+        <p class="no-items-message" id="noPresetsMessage">No presets saved yet.</p>
+      </div>
+
+      <!-- Add/Edit Preset Form Area -->
+      <div class="form-area" id="presetFormArea">
+          <h4>Add New Preset</h4>
+          <form id="presetForm">
+              <label for="presetNameInput">Name:</label>
+              <input type="text" id="presetNameInput" required>
+
+              <label for="presetPromptSelect">Custom Prompt:</label>
+              <select id="presetPromptSelect">
+                  <option value="">-- Select a Prompt --</option>
+              </select>
+
+              <label for="presetModelSelect">Model:</label>
+              <select id="presetModelSelect">
+                  <option value="">-- Select a Model --</option>
+              </select>
+
+              <label for="presetProxySelect">Proxy URL:</label>
+              <select id="presetProxySelect">
+                  <option value="">-- Select a Proxy URL --</option>
+              </select>
+
+              <label for="presetApiKeySelect">API Key:</label>
+              <select id="presetApiKeySelect">
+                  <option value="">-- Select an API Key --</option>
+              </select>
+
+              <button type="submit" class="fancy-button" id="savePresetButton">Save Preset</button>
+              <button type="button" class="fancy-button" id="cancelPresetButton">Cancel</button>
+          </form>
+      </div>
+    </div>
+  </div> <!-- End of Main View -->
+
+  <!-- Settings View (NEW) -->
+  <div id="settingsView" class="view-container">
+    <!-- Default Themes Section -->
+    <div class="data-section" id="defaultThemesArea">
+      <h3>Default Themes
+      </h3>
+      <div class="data-list" id="defaultThemesList">
+        <p class="no-items-message" id="noDefaultThemesMessage">No default themes available.</p>
+      </div>
+    </div>
+
+    <!-- Custom Themes Section -->
+    <div class="data-section" id="customThemesArea">
+      <h3>Custom Themes
+        <div class="add-button-container">
+           <button class="add-button fancy-button" id="addCustomThemeButton"><i class="fas fa-plus"></i></button>
+        </div>
+      </h3>
+      <div class="data-list" id="customThemesList">
+        <p class="no-items-message" id="noCustomThemesMessage">No custom themes saved yet.</p>
+      </div>
+
+      <!-- Add/Edit Theme Form Area (shared) -->
+      <div class="form-area" id="themeFormArea">
+          <h4>Add New Theme</h4>
+          <form id="themeForm">
+              <label for="themeTemplateInput">Template Theme:</label>
+              <select id="themeTemplateInput">
+                  <option value="">-- Select a template --</option>
+              </select>
+
+              <label for="themeNameInput">Theme Name:</label>
+              <input type="text" id="themeNameInput" required>
+
+              <label for="themePrimaryBgInput">Primary Background:</label>
+              <input type="color" id="themePrimaryBgInput" value="#0A0517">
+
+              <label for="themeSecondaryBgInput">Secondary Background:</label>
+              <input type="color" id="themeSecondaryBgInput" value="#1A0B3B">
+
+              <label for="themeListItemBgInput">List Item Background:</label>
+              <input type="color" id="themeListItemBgInput" value="#2D1657">
+
+              <label for="themeListItemHoverBgInput">List Item Hover Background:</label>
+              <input type="color" id="themeListItemHoverBgInput" value="#321A64">
+
+              <label for="themeTextDefaultInput">Default Text Color:</label>
+              <input type="color" id="themeTextDefaultInput" value="#ABB2BF">
+
+              <label for="themeTextHeadingInput">Heading Text Color:</label>
+              <input type="color" id="themeTextHeadingInput" value="#8E67FF">
+
+              <label for="themeTextInfoInput">Info Text Color:</label>
+              <input type="color" id="themeTextInfoInput" value="#61AFEF">
+
+              <label for="themeBorderPrimaryInput">Primary Border Color:</label>
+              <input type="color" id="themeBorderPrimaryInput" value="#2D1657">
+
+              <button type="submit" class="fancy-button" id="saveThemeButton">Save Theme</button>
+              <button type="button" class="fancy-button" id="cancelThemeButton">Cancel</button>
+          </form>
+      </div>
+    </div>
+
+    <!-- Import/Export Section (NEW) -->
+    <div class="data-section" id="importExportArea">
+      <h3>Import/Export Data</h3>
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button class="fancy-button" id="exportDataButton">Export Data</button>
+        <button class="fancy-button" id="importDataButton">Import Data</button>
+        <input type="file" id="importFileInput" accept=".json" style="display: none;">
+      </div>
+    </div>
+
+  </div> <!-- End of Settings View -->
 
 
   <!-- Custom Message Box (Keep this) -->
