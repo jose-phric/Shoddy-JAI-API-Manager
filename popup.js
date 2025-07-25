@@ -37,7 +37,7 @@ const apiKeyArea = document.getElementById('apiKeyArea');
 const presetsArea = document.getElementById('presetsArea');
 const defaultThemesArea = document.getElementById('defaultThemesArea');
 const customThemesArea = document.getElementById('customThemesArea');
-const importExportArea = document.getElementById('importExportArea'); // NEW
+const importExportArea = document.getElementById('importExportArea');
 
 
 // List divs (direct parent of items)
@@ -110,7 +110,7 @@ const themeTextHeadingInput = document.getElementById('themeTextHeadingInput');
 const themeTextInfoInput = document.getElementById('themeTextInfoInput');
 const themeBorderPrimaryInput = document.getElementById('themeBorderPrimaryInput');
 
-// Import/Export Buttons and Input (NEW)
+// Import/Export Buttons and Input
 const exportDataButton = document.getElementById('exportDataButton');
 const importDataButton = document.getElementById('importDataButton');
 const importFileInput = document.getElementById('importFileInput');
@@ -251,35 +251,35 @@ function showAllListAreas() {
 
     // Show elements based on active view
     if (mainView.classList.contains('active')) {
-        promptArea.style.display = 'flex'; // Changed to 'flex'
+        promptArea.style.display = 'flex';
         promptsListDiv.style.display = 'block';
         addPromptButton.style.display = 'flex';
 
-        modelArea.style.display = 'flex'; // Changed to 'flex'
+        modelArea.style.display = 'flex';
         modelsListDiv.style.display = 'block';
         addModelButton.style.display = 'flex';
 
-        proxyUrlArea.style.display = 'flex'; // Changed to 'flex'
+        proxyUrlArea.style.display = 'flex';
         proxyUrlsListDiv.style.display = 'block';
         addProxyUrlButton.style.display = 'flex';
 
-        apiKeyArea.style.display = 'flex'; // Changed to 'flex'
+        apiKeyArea.style.display = 'flex';
         apiKeysListDiv.style.display = 'block';
         addApiKeyButton.style.display = 'flex';
 
-        presetsArea.style.display = 'flex'; // Changed to 'flex'
+        presetsArea.style.display = 'flex';
         presetsListDiv.style.display = 'block';
         addPresetButton.style.display = 'flex';
     } else if (settingsView.classList.contains('active')) {
-        defaultThemesArea.style.display = 'flex'; // Changed to 'flex'
+        defaultThemesArea.style.display = 'flex';
         defaultThemesListDiv.style.display = 'block';
         // No add button for default themes
 
-        customThemesArea.style.display = 'flex'; // Changed to 'flex'
+        customThemesArea.style.display = 'flex';
         customThemesListDiv.style.display = 'block';
         addCustomThemeButton.style.display = 'flex';
 
-        importExportArea.style.display = 'flex'; // NEW: Show import/export section
+        importExportArea.style.display = 'flex';
     }
 
     // Reset editing state and button texts
@@ -601,7 +601,7 @@ function showAddPromptForm() {
     showAllListAreas();
     promptForm.reset();
     hideAllForms();
-    promptArea.style.display = 'flex'; // Changed to 'flex'
+    promptArea.style.display = 'flex';
     promptsListDiv.style.display = 'none';
     addPromptButton.style.display = 'flex';
     promptFormArea.style.display = 'block';
@@ -614,7 +614,7 @@ function showEditPromptForm(promptData) {
     showAllListAreas();
     promptForm.reset();
     hideAllForms();
-    promptArea.style.display = 'flex'; // Changed to 'flex'
+    promptArea.style.display = 'flex';
     promptsListDiv.style.display = 'none';
     addPromptButton.style.display = 'flex';
     promptFormArea.style.display = 'block';
@@ -764,7 +764,7 @@ function showAddModelForm() {
     showAllListAreas();
     modelForm.reset();
     hideAllForms();
-    modelArea.style.display = 'flex'; // Changed to 'flex'
+    modelArea.style.display = 'flex';
     modelsListDiv.style.display = 'none';
     addModelButton.style.display = 'flex';
     modelFormArea.style.display = 'block';
@@ -777,7 +777,7 @@ function showEditModelForm(modelValue) {
     showAllListAreas();
     modelForm.reset();
     hideAllForms();
-    modelArea.style.display = 'flex'; // Changed to 'flex'
+    modelArea.style.display = 'flex';
     modelsListDiv.style.display = 'none';
     addModelButton.style.display = 'flex';
     modelFormArea.style.display = 'block';
@@ -927,7 +927,7 @@ function showAddProxyUrlForm() {
     showAllListAreas();
     proxyUrlForm.reset();
     hideAllForms();
-    proxyUrlArea.style.display = 'flex'; // Changed to 'flex'
+    proxyUrlArea.style.display = 'flex';
     proxyUrlsListDiv.style.display = 'none';
     addProxyUrlButton.style.display = 'flex';
     proxyUrlFormArea.style.display = 'block';
@@ -940,7 +940,7 @@ function showEditProxyUrlForm(proxyValue) {
     showAllListAreas();
     proxyUrlForm.reset();
     hideAllForms();
-    proxyUrlArea.style.display = 'flex'; // Changed to 'flex'
+    proxyUrlArea.style.display = 'flex';
     proxyUrlsListDiv.style.display = 'none';
     addProxyUrlButton.style.display = 'flex';
     proxyUrlFormArea.style.display = 'block';
@@ -1097,7 +1097,7 @@ function showAddApiKeyForm() {
     showAllListAreas();
     apiKeyForm.reset();
     hideAllForms();
-    apiKeyArea.style.display = 'flex'; // Changed to 'flex'
+    apiKeyArea.style.display = 'flex';
     apiKeysListDiv.style.display = 'none';
     addApiKeyButton.style.display = 'flex';
     apiKeyFormArea.style.display = 'block';
@@ -1110,7 +1110,7 @@ function showEditApiKeyForm(apiKeyData) {
     showAllListAreas();
     apiKeyForm.reset();
     hideAllForms();
-    apiKeyArea.style.display = 'flex'; // Changed to 'flex'
+    apiKeyArea.style.display = 'flex';
     apiKeysListDiv.style.display = 'none';
     addApiKeyButton.style.display = 'flex';
     apiKeyFormArea.style.display = 'block';
@@ -1279,7 +1279,7 @@ function showAddPresetForm() {
     showAllListAreas();
     presetForm.reset();
     hideAllForms();
-    presetsArea.style.display = 'flex'; // Changed to 'flex'
+    presetsArea.style.display = 'flex';
     presetsListDiv.style.display = 'none';
     addPresetButton.style.display = 'flex';
     presetFormArea.style.display = 'block';
@@ -1355,7 +1355,7 @@ function showEditPresetForm(presetData) {
     showAllListAreas();
     presetForm.reset();
     hideAllForms();
-    presetsArea.style.display = 'flex'; // Changed to 'flex'
+    presetsArea.style.display = 'flex';
     presetsListDiv.style.display = 'none';
     addPresetButton.style.display = 'flex';
     presetFormArea.style.display = 'block';
@@ -1904,7 +1904,7 @@ function showAddThemeForm() {
     showAllListAreas();
     themeForm.reset();
     hideAllForms();
-    customThemesArea.style.display = 'flex'; // Changed to 'flex'
+    customThemesArea.style.display = 'flex';
     customThemesListDiv.style.display = 'none';
     addCustomThemeButton.style.display = 'flex';
     themeFormArea.style.display = 'block';
@@ -1980,7 +1980,7 @@ function showEditThemeForm(themeData) {
     showAllListAreas();
     themeForm.reset();
     hideAllForms();
-    customThemesArea.style.display = 'flex'; // Changed to 'flex'
+    customThemesArea.style.display = 'flex';
     customThemesListDiv.style.display = 'none';
     addCustomThemeButton.style.display = 'flex';
     themeFormArea.style.display = 'block';
@@ -2115,7 +2115,20 @@ function hexToRgba(hex, alpha) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-// --- Import/Export Functions (NEW) ---
+// --- Import/Export Functions ---
+
+// Promisify chrome.storage.local.set and clear for cleaner async/await usage
+function setStorageLocal(data) {
+    return new Promise(resolve => {
+        chrome.storage.local.set(data, resolve);
+    });
+}
+
+function clearStorageLocal() {
+    return new Promise(resolve => {
+        chrome.storage.local.clear(resolve);
+    });
+}
 
 function handleExportData() {
     showCustomMessageBox('Are you sure you want to export all your data?', async () => {
@@ -2178,13 +2191,12 @@ function handleFileSelect(event) {
                 return;
             }
 
-            // Clear current storage and set new data
-            await chrome.storage.local.clear();
-            await chrome.storage.local.set(importedData, () => {
-                showCustomMessageBox('Data imported successfully! Reloading...');
-                reloadAllLists();
-                showView(mainView); // Go back to main view after import
-            });
+            await clearStorageLocal(); // Now correctly awaits the clear operation
+            await setStorageLocal(importedData); // Now correctly awaits the set operation
+
+            showCustomMessageBox('Data imported successfully! Reloading...');
+            reloadAllLists();
+            showView(mainView); // Go back to main view after import
 
         } catch (error) {
             console.error('Error importing data:', error);
@@ -2233,7 +2245,7 @@ addCustomThemeButton.addEventListener('click', showAddThemeForm);
 themeForm.addEventListener('submit', handleSaveTheme);
 cancelThemeButton.addEventListener('click', handleCancelThemeForm);
 
-// Import/Export (NEW)
+// Import/Export
 exportDataButton.addEventListener('click', handleExportData);
 importDataButton.addEventListener('click', handleImportData);
 importFileInput.addEventListener('change', handleFileSelect);
