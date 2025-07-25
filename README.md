@@ -102,6 +102,9 @@ Here is a dump of a few of the different themes!:
 <img width="325" height="604" alt="image" src="https://github.com/user-attachments/assets/6276c97f-7e22-4839-bbfe-b0b886f38d15" />
 <img width="327" height="600" alt="image" src="https://github.com/user-attachments/assets/7ca961af-b1b2-4f7f-b4ad-7389583af397" />
 <img width="326" height="601" alt="image" src="https://github.com/user-attachments/assets/0da6344e-cee9-4489-aa79-3a37bfa2ed8d" />
+<img width="324" height="601" alt="image" src="https://github.com/user-attachments/assets/65db0339-0713-4fca-8646-8799a93da21d" />
+<img width="329" height="605" alt="image" src="https://github.com/user-attachments/assets/1ca1bd4b-0226-4f20-b747-c8bcdd7ad3cf" />
+
 
 Alternatively, easily create your own theme using the built in theme creator:
 
