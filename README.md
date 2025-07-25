@@ -58,30 +58,53 @@ Enhance your JanitorAI chat experience with custom presets! Quickly inject your 
 
 What the new J.AI UI will look like: (Assuming you have at least one value saved in each section. The dropdowns will NOT appear if you have nothing stored!)
 
-<img width="631" height="903" alt="image" src="<https://github.com/user-attachments/assets/3e5dcffb-810d-4996-a6ee-18de1f522b73>" />
+<img width="588" height="1173" alt="image" src="https://github.com/user-attachments/assets/3bd13370-3aa3-4bb5-8881-87658b38931d" />
 
 What the preset buttons look like (all the way at the bottom of the J.AI page):
 
-<img width="596" height="196" alt="image" src="<https://github.com/user-attachments/assets/67d76120-0ee2-439b-b185-eafed9f1118b>" />
+<img width="384" height="116" alt="image" src="https://github.com/user-attachments/assets/a19af98c-cfdc-4e86-8400-82814815ec5d" />
 
 What the dropdowns look like:
 
-<img width="612" height="273" alt="image" src="<https://github.com/user-attachments/assets/962e4718-5e40-4218-b637-91ef483f1ebf>" />
+<img width="555" height="305" alt="image" src="https://github.com/user-attachments/assets/6dc7bdb5-c7aa-4489-9b64-57c682931945" />
 
 **The look of the actual extension popup itself looks like (when you click the icon in the top right):**
 
 What the popup/extension looks like when you click on it:
 
-<img width="346" height="603" alt="image" src="<https://github.com/user-attachments/assets/28376f6a-b863-4f15-8ea4-e2822211526a>" />
+<img width="326" height="606" alt="image" src="https://github.com/user-attachments/assets/f7de550a-6ae0-4ae0-8103-de03d06d81a8" />
 
 What adding a prompt looks like:
 
-<img width="342" height="598" alt="image" src="<https://github.com/user-attachments/assets/34ca6213-15c5-408d-af7f-e07ec375369b>" />
+<img width="319" height="486" alt="image" src="https://github.com/user-attachments/assets/b17583c5-33f7-4623-a98b-21ef9598a5dc" />
 
 What adding a preset looks like:
 
-<img width="333" height="599" alt="image" src="<https://github.com/user-attachments/assets/aa9611f8-bf76-4eee-a257-4979e7177fa6>" />
+<img width="298" height="531" alt="image" src="https://github.com/user-attachments/assets/464a95e8-f22f-420e-92f7-9ecb54c86873" />
 
 On click edit/delete button: (Could probably use another tweak to look better :P)
 
-<img width="343" height="322" alt="image" src="<https://github.com/user-attachments/assets/696a2a83-97c7-4fd4-9418-08b10d712264>" />
+<img width="304" height="266" alt="image" src="https://github.com/user-attachments/assets/aa5cd87d-a454-424d-b209-8c795014922b" />
+
+Settings page:
+
+<img width="329" height="604" alt="image" src="https://github.com/user-attachments/assets/3fbc2f7d-a3db-4298-9d1d-a8026d5629a1" />
+
+Here is a dump of a few of the different themes!:
+
+<img width="329" height="602" alt="image" src="https://github.com/user-attachments/assets/b431a106-2d3a-4383-a4a3-db9a25ebb596" />
+<img width="322" height="604" alt="image" src="https://github.com/user-attachments/assets/0be05fbd-ecd0-4aa1-8ae1-a011d86e7baa" />
+<img width="328" height="606" alt="image" src="https://github.com/user-attachments/assets/72f2c748-e07a-4926-ac88-9c3f2f0a2daf" />
+<img width="327" height="604" alt="image" src="https://github.com/user-attachments/assets/5e7d0c3d-a739-4d77-998f-d66b44532ad7" />
+<img width="325" height="605" alt="image" src="https://github.com/user-attachments/assets/6d2bafcb-a0cf-48cc-ac47-76cd97d70e57" />
+<img width="328" height="606" alt="image" src="https://github.com/user-attachments/assets/36aaee35-8b3c-4e70-89cc-b7162e73738a" />
+<img width="329" height="605" alt="image" src="https://github.com/user-attachments/assets/6b47575c-35a2-4cf5-872b-0cb3135f32b2" />
+<img width="325" height="604" alt="image" src="https://github.com/user-attachments/assets/6276c97f-7e22-4839-bbfe-b0b886f38d15" />
+<img width="327" height="600" alt="image" src="https://github.com/user-attachments/assets/7ca961af-b1b2-4f7f-b4ad-7389583af397" />
+
+Alternatively, easily create your own theme using the built in theme creator:
+
+<img width="322" height="602" alt="image" src="https://github.com/user-attachments/assets/1d747ff5-129b-4ddc-a4ee-6592f7127264" />
+<img width="323" height="601" alt="image" src="https://github.com/user-attachments/assets/b96c39c8-3311-40c6-9794-6d840e3793fa" />
+
+
