@@ -58,7 +58,7 @@ Enhance your JanitorAI chat experience with custom presets! Quickly inject your 
 
 What the new J.AI UI will look like: (Assuming you have at least one value saved in each section. The dropdowns will NOT appear if you have nothing stored!)
 
-<img width="588" height="1173" alt="image" src="https://github.com/user-attachments/assets/3bd13370-3aa3-4bb5-8881-87658b38931d" />
+<img width="576" height="1161" alt="image" src="https://github.com/user-attachments/assets/de7542cf-f2ab-4e4c-ac23-2b3419e58e61" />
 
 What the preset buttons look like (all the way at the bottom of the J.AI page):
 
