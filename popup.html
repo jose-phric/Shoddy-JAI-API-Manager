@@ -677,7 +677,7 @@
 </head>
 <body>
   <div class="top-bar">
-    <h2 id="mainHeading">Shoddy API Manager</h2> <!-- Changed heading text here -->
+    <h2 id="mainHeading">Shoddy API Manager</h2>
     <button class="fancy-button" id="settingsButton">Settings</button>
     <button class="fancy-button" id="backButton" style="display: none;">Back</button>
   </div>
@@ -790,50 +790,8 @@
       </div>
     </div>
 
-    <!-- Presets Section -->
-    <div class="data-section" id="presetsArea">
-      <h3>Presets
-        <div class="add-button-container">
-           <button class="add-button fancy-button" id="addPresetButton"><i class="fas fa-plus"></i></button>
-        </div>
-      </h3>
-      <div class="data-list" id="presetsList">
-        <!-- Saved presets will be listed here by popup.js -->
-        <p class="no-items-message" id="noPresetsMessage">No presets saved yet.</p>
-      </div>
-
-      <!-- Add/Edit Preset Form Area -->
-      <div class="form-area" id="presetFormArea">
-          <h4>Add New Preset</h4>
-          <form id="presetForm">
-              <label for="presetNameInput">Name:</label>
-              <input type="text" id="presetNameInput" required>
-
-              <label for="presetPromptSelect">Custom Prompt:</label>
-              <select id="presetPromptSelect">
-                  <option value="">-- Select a Prompt --</option>
-              </select>
-
-              <label for="presetModelSelect">Model:</label>
-              <select id="presetModelSelect">
-                  <option value="">-- Select a Model --</option>
-              </select>
-
-              <label for="presetProxySelect">Proxy URL:</label>
-              <select id="presetProxySelect">
-                  <option value="">-- Select a Proxy URL --</option>
-              </select>
-
-              <label for="presetApiKeySelect">API Key:</label>
-              <select id="presetApiKeySelect">
-                  <option value="">-- Select an API Key --</option>
-              </select>
-
-              <button type="submit" class="fancy-button" id="savePresetButton">Save Preset</button>
-              <button type="button" class="fancy-button" id="cancelPresetButton">Cancel</button>
-          </form>
-      </div>
-    </div>
+    <!-- Presets Section - REMOVED -->
+    <!-- Add/Edit Preset Form Area - REMOVED -->
   </div> <!-- End of Main View -->
 
   <!-- Settings View (NEW) -->

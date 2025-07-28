@@ -3,7 +3,7 @@
 // and Presets in the browser action popup.
 
 // --- DEBUG CONFIGURATION ---
-const DEBUG_MODE = false; // Set to true to enable console logs, false to disable.
+const DEBUG_MODE = true; // Set to true to enable console logs, false to disable.
 // --- END DEBUG CONFIGURATION ---
 
 
@@ -12,7 +12,6 @@ const DEBUG_MODE = false; // Set to true to enable console logs, false to disabl
 // savedModels: Array of String ('Model Name')
 // savedProxies: Array of String ('Proxy URL')
 // savedApiKeys: Array of { id: 'unique-id', name: 'Key Name', value: 'Key Value' }
-// savedPresets: Array of { id: 'unique-id', name: 'Preset Name', prompt: 'Prompt Text', model: 'Model Name', proxy: 'Proxy URL', apiKey: 'Key Value' }
 // savedThemes: Array of { id: 'unique-id', name: 'Theme Name', colors: { ... } }
 // currentThemeId: String (ID of the currently active theme)
 
@@ -34,7 +33,7 @@ const promptArea = document.getElementById('promptArea');
 const modelArea = document.getElementById('modelArea');
 const proxyUrlArea = document.getElementById('proxyUrlArea');
 const apiKeyArea = document.getElementById('apiKeyArea');
-const presetsArea = document.getElementById('presetsArea');
+// Presets Area Removed
 const defaultThemesArea = document.getElementById('defaultThemesArea');
 const customThemesArea = document.getElementById('customThemesArea');
 const importExportArea = document.getElementById('importExportArea');
@@ -45,7 +44,7 @@ const promptsListDiv = document.getElementById('promptsList');
 const modelsListDiv = document.getElementById('modelsList');
 const proxyUrlsListDiv = document.getElementById('proxyUrlsList');
 const apiKeysListDiv = document.getElementById('apiKeysList');
-const presetsListDiv = document.getElementById('presetsList');
+// Presets List Div Removed
 const defaultThemesListDiv = document.getElementById('defaultThemesList');
 const customThemesListDiv = document.getElementById('customThemesList');
 
@@ -54,7 +53,7 @@ const addPromptButton = document.getElementById('addPromptButton');
 const addModelButton = document.getElementById('addModelButton');
 const addProxyUrlButton = document.getElementById('addProxyUrlButton');
 const addApiKeyButton = document.getElementById('addApiKeyButton');
-const addPresetButton = document.getElementById('addPresetButton');
+// Add Preset Button Removed
 const addCustomThemeButton = document.getElementById('addCustomThemeButton');
 
 // "No items" messages
@@ -62,7 +61,7 @@ const noPromptsMessage = document.getElementById('noPromptsMessage');
 const noModelsMessage = document.getElementById('noModelsMessage');
 const noProxyUrlsMessage = document.getElementById('noProxyUrlsMessage');
 const noApiKeysMessage = document.getElementById('noApiKeysMessage');
-const noPresetsMessage = document.getElementById('noPresetsMessage');
+// No Presets Message Removed
 const noDefaultThemesMessage = document.getElementById('noDefaultThemesMessage');
 const noCustomThemesMessage = document.getElementById('noCustomThemesMessage');
 
@@ -72,7 +71,7 @@ const promptFormArea = document.getElementById('promptFormArea');
 const modelFormArea = document.getElementById('modelFormArea');
 const proxyUrlFormArea = document.getElementById('proxyUrlFormArea');
 const apiKeyFormArea = document.getElementById('apiKeyFormArea');
-const presetFormArea = document.getElementById('presetFormArea');
+// Preset Form Area Removed
 const themeFormArea = document.getElementById('themeFormArea');
 
 
@@ -81,7 +80,7 @@ const promptForm = document.getElementById('promptForm');
 const modelForm = document.getElementById('modelForm');
 const proxyUrlForm = document.getElementById('proxyUrlForm');
 const apiKeyForm = document.getElementById('apiKeyForm');
-const presetForm = document.getElementById('presetForm');
+// Preset Form Removed
 const themeForm = document.getElementById('themeForm');
 
 
@@ -92,12 +91,7 @@ const modelValueInput = document.getElementById('modelValueInput');
 const proxyUrlValueInput = document.getElementById('proxyUrlValueInput');
 const apiKeyNameInput = document.getElementById('apiKeyNameInput');
 const apiKeyValueInput = document.getElementById('apiKeyValueInput');
-const presetNameInput = document.getElementById('presetNameInput');
-// Changed to select elements
-const presetPromptSelect = document.getElementById('presetPromptSelect');
-const presetModelSelect = document.getElementById('presetModelSelect');
-const presetProxySelect = document.getElementById('presetProxySelect');
-const presetApiKeySelect = document.getElementById('presetApiKeySelect');
+// Preset Inputs Removed
 // Theme form inputs
 const themeTemplateInput = document.getElementById('themeTemplateInput');
 const themeNameInput = document.getElementById('themeNameInput');
@@ -121,7 +115,7 @@ const savePromptButton = promptForm.querySelector('button[type="submit"]');
 const saveModelButton = modelForm.querySelector('button[type="submit"]');
 const saveProxyUrlButton = proxyUrlForm.querySelector('button[type="submit"]');
 const saveApiKeyButton = apiKeyForm.querySelector('button[type="submit"]');
-const savePresetButton = presetForm.querySelector('button[type="submit"]');
+// Save Preset Button Removed
 const saveThemeButton = themeForm.querySelector('button[type="submit"]');
 
 
@@ -130,7 +124,7 @@ const cancelPromptButton = document.getElementById('cancelPromptButton');
 const cancelModelButton = document.getElementById('cancelModelButton');
 const cancelProxyUrlButton = document.getElementById('cancelProxyUrlButton');
 const cancelApiKeyButton = document.getElementById('cancelApiKeyButton');
-const cancelPresetButton = document.getElementById('cancelPresetButton');
+// Cancel Preset Button Removed
 const cancelThemeButton = document.getElementById('cancelThemeButton');
 
 
@@ -220,7 +214,7 @@ function hideAllForms() {
     modelFormArea.style.display = 'none';
     proxyUrlFormArea.style.display = 'none';
     apiKeyFormArea.style.display = 'none';
-    presetFormArea.style.display = 'none';
+    // Preset Form Area Removed
     themeFormArea.style.display = 'none';
 }
 
@@ -239,13 +233,13 @@ function hideAllActionButtons() {
  */
 function showAllListAreas() {
     // Hide all list areas and add buttons first
-    [promptArea, modelArea, proxyUrlArea, apiKeyArea, presetsArea, defaultThemesArea, customThemesArea, importExportArea].forEach(area => {
+    [promptArea, modelArea, proxyUrlArea, apiKeyArea, /* presetsArea, */ defaultThemesArea, customThemesArea, importExportArea].forEach(area => {
         area.style.display = 'none';
     });
-    [promptsListDiv, modelsListDiv, proxyUrlsListDiv, apiKeysListDiv, presetsListDiv, defaultThemesListDiv, customThemesListDiv].forEach(list => {
+    [promptsListDiv, modelsListDiv, proxyUrlsListDiv, apiKeysListDiv, /* presetsListDiv, */ defaultThemesListDiv, customThemesListDiv].forEach(list => {
         list.style.display = 'none';
     });
-    [addPromptButton, addModelButton, addProxyUrlButton, addApiKeyButton, addPresetButton, addCustomThemeButton].forEach(button => {
+    [addPromptButton, addModelButton, addProxyUrlButton, addApiKeyButton, /* addPresetButton, */ addCustomThemeButton].forEach(button => {
         button.style.display = 'none';
     });
 
@@ -267,9 +261,7 @@ function showAllListAreas() {
         apiKeysListDiv.style.display = 'block';
         addApiKeyButton.style.display = 'flex';
 
-        presetsArea.style.display = 'flex';
-        presetsListDiv.style.display = 'block';
-        addPresetButton.style.display = 'flex';
+        // Presets Area Removed
     } else if (settingsView.classList.contains('active')) {
         defaultThemesArea.style.display = 'flex';
         defaultThemesListDiv.style.display = 'block';
@@ -289,7 +281,7 @@ function showAllListAreas() {
     saveModelButton.textContent = 'Save Model';
     saveProxyUrlButton.textContent = 'Save Proxy URL';
     saveApiKeyButton.textContent = 'Save Key';
-    savePresetButton.textContent = 'Save Preset';
+    // Save Preset Button Removed
     saveThemeButton.textContent = 'Save Theme';
 
     hideAllActionButtons(); // Ensure all action buttons are hidden when forms are closed
@@ -330,7 +322,7 @@ function reloadAllLists() {
     loadAndDisplayModels();
     loadAndDisplayProxies();
     loadAndDisplayApiKeys();
-    loadAndDisplayPresets();
+    // loadAndDisplayPresets(); // Presets function removed
     loadAndDisplayDefaultThemes();
     loadAndDisplayCustomThemes();
 }
@@ -1196,263 +1188,6 @@ function handleCancelApiKeyForm() {
 }
 
 
-// --- Functions for Presets ---
-
-function loadAndDisplayPresets() {
-    chrome.storage.local.get({ savedPresets: [] }, (data) => {
-        const presets = data.savedPresets;
-        presetsListDiv.innerHTML = '';
-        if (DEBUG_MODE) console.log('[savedPresets] Loaded:', JSON.parse(JSON.stringify(presets)));
-
-        if (presets.length === 0) {
-            presetsListDiv.appendChild(noPresetsMessage);
-            noPresetsMessage.style.display = 'block';
-        } else {
-            noPresetsMessage.style.display = 'none';
-            presets.forEach(preset => {
-                const item = document.createElement('div');
-                item.className = 'data-list-item';
-                item.dataset.id = preset.id;
-                item.draggable = true;
-
-                item.addEventListener('dragstart', (e) => handleDragStart(e, preset, 'savedPresets', 'id'));
-                item.addEventListener('dragend', handleDragEnd);
-
-                item.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const actionButtons = item.querySelector('.action-buttons');
-                    if (actionButtons) {
-                        if (actionButtons.classList.contains('hidden')) {
-                            hideAllActionButtons();
-                            actionButtons.classList.remove('hidden');
-                        } else {
-                            actionButtons.classList.add('hidden');
-                        }
-                    }
-                });
-
-                presetsListDiv.appendChild(item);
-
-                const itemHeader = document.createElement('div');
-                itemHeader.className = 'item-header';
-                item.appendChild(itemHeader);
-
-                const nameSpan = document.createElement('span');
-                nameSpan.className = 'item-name';
-                nameSpan.textContent = preset.name;
-                itemHeader.appendChild(nameSpan);
-
-                const actionButtonsContainer = document.createElement('div');
-                actionButtonsContainer.className = 'action-buttons hidden';
-
-                const editButton = document.createElement('button');
-                editButton.innerHTML = '<i class="fas fa-pencil-alt"></i>';
-                editButton.className = 'edit-button icon-button';
-                editButton.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    showEditPresetForm(preset);
-                });
-                actionButtonsContainer.appendChild(editButton);
-
-                const deleteButton = document.createElement('button');
-                deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
-                deleteButton.className = 'delete-button icon-button';
-                deleteButton.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    showCustomMessageBox(`Are you sure you want to delete "${preset.name}"?`, () => handleDeletePreset(preset.id), true);
-                });
-                actionButtonsContainer.appendChild(deleteButton);
-
-                itemHeader.appendChild(actionButtonsContainer);
-
-                const valueSpan = document.createElement('span');
-                valueSpan.className = 'item-value';
-                const summary = `M: ${preset.model ? preset.model.substring(0,10) + '...' : '-'}, P: ${preset.proxy ? preset.proxy.substring(0,10) + '...' : '-'}, A: ${preset.apiKey ? (preset.apiKey.name || preset.apiKey).substring(0,10) + '...' : '-'}`;
-                valueSpan.textContent = summary;
-                item.appendChild(valueSpan);
-            });
-        }
-    });
-}
-
-function showAddPresetForm() {
-    showAllListAreas();
-    presetForm.reset();
-    hideAllForms();
-    presetsArea.style.display = 'flex';
-    presetsListDiv.style.display = 'none';
-    addPresetButton.style.display = 'flex';
-    presetFormArea.style.display = 'block';
-    savePresetButton.textContent = 'Save Preset';
-    editingItemId = null;
-    editingItemType = null;
-
-    // Populate dropdowns for preset creation
-    populatePresetDropdowns();
-}
-
-async function populatePresetDropdowns(presetData = null) {
-    const data = await new Promise(resolve => {
-        chrome.storage.local.get(['savedPrompts', 'savedModels', 'savedProxies', 'savedApiKeys'], resolve);
-    });
-
-    const prompts = data.savedPrompts || [];
-    const models = data.savedModels || [];
-    const proxies = data.savedProxies || [];
-    const apiKeys = data.savedApiKeys || [];
-
-    // Populate Prompts dropdown
-    presetPromptSelect.innerHTML = '<option value="">-- Select a Prompt --</option>';
-    prompts.forEach(p => {
-        const option = document.createElement('option');
-        option.value = p.value; // Store the actual prompt text
-        option.textContent = p.name; // Display the prompt's name
-        presetPromptSelect.appendChild(option);
-    });
-    if (presetData && presetData.prompt) {
-        presetPromptSelect.value = presetData.prompt;
-    }
-
-    // Populate Models dropdown
-    presetModelSelect.innerHTML = '<option value="">-- Select a Model --</option>';
-    models.forEach(m => {
-        const option = document.createElement('option');
-        option.value = m;
-        option.textContent = m;
-        presetModelSelect.appendChild(option);
-    });
-    if (presetData && presetData.model) {
-        presetModelSelect.value = presetData.model;
-    }
-
-    // Populate Proxies dropdown
-    presetProxySelect.innerHTML = '<option value="">-- Select a Proxy URL --</option>';
-    proxies.forEach(p => {
-        const option = document.createElement('option');
-        option.value = p;
-        option.textContent = p;
-        presetProxySelect.appendChild(option);
-    });
-    if (presetData && presetData.proxy) {
-        presetProxySelect.value = presetData.proxy;
-    }
-
-    // Populate API Keys dropdown
-    presetApiKeySelect.innerHTML = '<option value="">-- Select an API Key --</option>';
-    apiKeys.forEach(k => {
-        const option = document.createElement('option');
-        option.value = k.value; // Store the actual key value
-        option.textContent = k.name; // Display the key's name
-        presetApiKeySelect.appendChild(option);
-    });
-    if (presetData && presetData.apiKey) {
-        presetApiKeySelect.value = presetData.apiKey;
-    }
-}
-
-
-function showEditPresetForm(presetData) {
-    showAllListAreas();
-    presetForm.reset();
-    hideAllForms();
-    presetsArea.style.display = 'flex';
-    presetsListDiv.style.display = 'none';
-    addPresetButton.style.display = 'flex';
-    presetFormArea.style.display = 'block';
-
-    presetNameInput.value = presetData.name;
-    // Populate dropdowns with existing data
-    populatePresetDropdowns(presetData);
-
-    savePresetButton.textContent = 'Update Preset';
-    editingItemId = presetData.id;
-    editingItemType = 'preset';
-}
-
-function handleSavePreset(event) {
-     event.preventDefault();
-
-    const name = presetNameInput.value.trim();
-    const prompt = presetPromptSelect.value; // Get value from select
-    const model = presetModelSelect.value;   // Get value from select
-    const proxy = presetProxySelect.value;   // Get value from select
-    const apiKey = presetApiKeySelect.value; // Get value from select
-
-    if (!name || !prompt) {
-        showCustomMessageBox('Preset Name and Prompt are required.');
-        return;
-    }
-
-    chrome.storage.local.get({ savedPresets: [] }, (data) => {
-        let presets = data.savedPresets;
-
-        if (editingItemId && editingItemType === 'preset') {
-            const index = presets.findIndex(p => p.id === editingItemId);
-            if (index !== -1) {
-                const existingWithName = presets.find(p => p.name === name && p.id !== editingItemId);
-                if (existingWithName) {
-                    showCustomMessageBox('A Preset with this name already exists!');
-                    return;
-                }
-                presets[index] = {
-                    id: editingItemId,
-                    name: name,
-                    prompt: prompt,
-                    model: model,
-                    proxy: proxy,
-                    apiKey: apiKey
-                };
-            } else {
-                showCustomMessageBox('Error: Preset not found for update.');
-            }
-        } else {
-            if (presets.some(p => p.name === name)) {
-                showCustomMessageBox('A Preset with this name already exists!');
-                return;
-            }
-            const newItem = {
-                id: generateUniqueId(),
-                name: name,
-                prompt: prompt,
-                model: model,
-                proxy: proxy,
-                apiKey: apiKey
-            };
-            presets.push(newItem);
-        }
-
-        chrome.storage.local.set({ savedPresets: presets }, () => {
-            presetFormArea.style.display = 'none';
-            showAllListAreas();
-            reloadAllLists();
-        });
-    });
-}
-
-function handleDeletePreset(idToDelete) {
-    chrome.storage.local.get({ savedPresets: [] }, (data) => {
-        let presets = data.savedPresets;
-        const initialLength = presets.length;
-        presets = presets.filter(p => p.id !== idToDelete);
-
-        if (presets.length < initialLength) {
-            chrome.storage.local.set({ savedPresets: presets }, () => {
-                showCustomMessageBox('Preset deleted successfully!');
-                reloadAllLists();
-            });
-        } else {
-            showCustomMessageBox('Error: Preset not found for deletion.');
-        }
-    });
-}
-
-function handleCancelPresetForm() {
-    presetFormArea.style.display = 'none';
-    showAllListAreas();
-    reloadAllLists();
-}
-
-
 // --- Functions for Themes ---
 
 const DEFAULT_THEME_COLORS = {
@@ -2120,13 +1855,19 @@ function hexToRgba(hex, alpha) {
 // Promisify chrome.storage.local.set and clear for cleaner async/await usage
 function setStorageLocal(data) {
     return new Promise(resolve => {
-        chrome.storage.local.set(data, resolve);
+        chrome.storage.local.set(data, () => {
+            if (DEBUG_MODE) console.log('setStorageLocal: Data successfully set.');
+            resolve();
+        });
     });
 }
 
 function clearStorageLocal() {
     return new Promise(resolve => {
-        chrome.storage.local.clear(resolve);
+        chrome.storage.local.clear(() => {
+            if (DEBUG_MODE) console.log('clearStorageLocal: Storage successfully cleared.');
+            resolve();
+        });
     });
 }
 
@@ -2162,26 +1903,35 @@ function handleImportData() {
 }
 
 function handleFileSelect(event) {
+    if (DEBUG_MODE) console.log('handleFileSelect triggered.');
     const file = event.target.files[0];
     if (!file) {
+        if (DEBUG_MODE) console.log('No file selected.');
         return;
     }
 
+    if (DEBUG_MODE) console.log('File selected:', file.name, file.type, file.size, 'bytes');
+
     const reader = new FileReader();
     reader.onload = async (e) => {
+        if (DEBUG_MODE) console.log('FileReader onload event fired.');
         try {
-            const importedData = JSON.parse(e.target.result);
+            const fileContent = e.target.result;
+            if (DEBUG_MODE) console.log('File content read. Attempting JSON.parse...');
+            const importedData = JSON.parse(fileContent);
+            if (DEBUG_MODE) console.log('JSON.parse successful. Imported Data:', importedData);
 
             // Basic validation: Check if expected top-level keys exist and are objects/arrays
             const expectedKeys = [
                 'savedPrompts', 'savedModels', 'savedProxies',
-                'savedApiKeys', 'savedPresets', 'savedThemes',
-                'currentThemeId'
+                'savedApiKeys', /* 'savedPresets', */
+                'savedThemes', 'currentThemeId'
             ];
             let isValid = true;
             for (const key of expectedKeys) {
                 if (!(key in importedData)) {
                     isValid = false;
+                    if (DEBUG_MODE) console.warn(`Validation failed: Missing key "${key}" in imported data.`);
                     break;
                 }
             }
@@ -2191,19 +1941,31 @@ function handleFileSelect(event) {
                 return;
             }
 
+            if (DEBUG_MODE) console.log('Data validation passed. Clearing storage...');
             await clearStorageLocal(); // Now correctly awaits the clear operation
+            if (DEBUG_MODE) console.log('Storage cleared. Setting new data...');
             await setStorageLocal(importedData); // Now correctly awaits the set operation
+            if (DEBUG_MODE) console.log('New data set. Displaying success message and reloading lists.');
 
             showCustomMessageBox('Data imported successfully! Reloading...');
             reloadAllLists();
             showView(mainView); // Go back to main view after import
 
         } catch (error) {
-            console.error('Error importing data:', error);
-            showCustomMessageBox('Failed to import data. Ensure it is a valid JSON file. See console for details.');
+            console.error('Error during import process:', error);
+            if (error instanceof SyntaxError) {
+                showCustomMessageBox('Failed to parse file. Ensure it is a valid JSON file.');
+            } else {
+                showCustomMessageBox('Failed to import data. See console for details.');
+            }
         } finally {
+            if (DEBUG_MODE) console.log('Import process finished. Clearing file input.');
             event.target.value = ''; // Clear the file input to allow re-importing the same file
         }
+    };
+    reader.onerror = (error) => {
+        console.error('FileReader error:', error);
+        showCustomMessageBox('Error reading file. Please try again.');
     };
     reader.readAsText(file);
 }
@@ -2235,10 +1997,7 @@ addApiKeyButton.addEventListener('click', showAddApiKeyForm);
 apiKeyForm.addEventListener('submit', handleSaveApiKey);
 cancelApiKeyButton.addEventListener('click', handleCancelApiKeyForm);
 
-// Presets
-addPresetButton.addEventListener('click', showAddPresetForm);
-presetForm.addEventListener('submit', handleSavePreset);
-cancelPresetButton.addEventListener('click', handleCancelPresetForm);
+// Presets (Event Listeners Removed)
 
 // Themes
 addCustomThemeButton.addEventListener('click', showAddThemeForm);
@@ -2311,10 +2070,11 @@ document.addEventListener('DOMContentLoaded', () => {
     apiKeysListDiv.addEventListener('dragleave', handleDragLeave);
     apiKeysListDiv.addEventListener('drop', handleDrop);
 
-    presetsListDiv.addEventListener('dragenter', (e) => e.preventDefault());
-    presetsListDiv.addEventListener('dragover', handleDragOver);
-    presetsListDiv.addEventListener('dragleave', handleDragLeave);
-    presetsListDiv.addEventListener('drop', handleDrop);
+    // Presets List Div Event Listeners Removed
+    // presetsListDiv.addEventListener('dragenter', (e) => e.preventDefault());
+    // presetsListDiv.addEventListener('dragover', handleDragOver);
+    // presetsListDiv.addEventListener('dragleave', handleDragLeave);
+    // presetsListDiv.addEventListener('drop', handleDrop);
 
     defaultThemesListDiv.addEventListener('dragenter', (e) => e.preventDefault());
     defaultThemesListDiv.addEventListener('dragover', handleDragOver);
